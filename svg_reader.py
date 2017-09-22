@@ -68,6 +68,7 @@ class SVG_READER(inkex.Effect):
         self.inscape_exe_list.append("C:\\Program Files (x86)\\Inkscape\\inkscape.exe")
         self.inscape_exe_list.append("/usr/bin/inkscape")
         self.inscape_exe_list.append("/usr/local/bin/inkscape")
+        self.inscape_exe_list.append("/Applications/Inkscape.app/Contents/Resources/bin/inkscape")
         self.inscape_exe = None
         self.lines =[]
         self.Cut_Type = {}
@@ -95,8 +96,22 @@ class SVG_READER(inkex.Effect):
             if ( os.path.isfile( location ) ):
                 self.inscape_exe=location
                 break
-        
-              
+    
+    def px_to_mm(self, node):
+        sval = str(node)
+        px2mmRatio = 0.1  # TODO: make this configurable through settings
+        if sval[(len(sval)-2):(len(sval))] == 'px':
+            nval = float(sval[0:(len(sval)-2)])
+            nval = nval * px2mmRatio
+            node._parent.set(node.attrname, str(nval) + 'mm')
+
+    def fix_svg_coords(self):
+        # x y width height
+        self.px_to_mm(self.document.getroot().xpath('@x', namespaces=inkex.NSS)[0])
+        self.px_to_mm(self.document.getroot().xpath('@y', namespaces=inkex.NSS)[0])
+        self.px_to_mm(self.document.getroot().xpath('@width', namespaces=inkex.NSS)[0])
+        self.px_to_mm(self.document.getroot().xpath('@height', namespaces=inkex.NSS)[0])
+
     def colmod(self,r,g,b,path_id):
         delta = 10
         #if (r,g,b) ==(255,0,0):
@@ -114,7 +129,9 @@ class SVG_READER(inkex.Effect):
         
     def process_shape(self, node, mat):
         rgb = (0,0,0)
-        path_id = node.get('id') 
+
+        # set default id if it's not specified, this fixes a bug where all elements resulted with the latest cut_type found
+        path_id = node.get('id', str(node.__hash__()))
         style   = node.get('style')
         self.Cut_Type[path_id]="raster" # Set default type to raster
         
@@ -173,8 +190,13 @@ class SVG_READER(inkex.Effect):
                 return
             p = cubicsuperpath.parsePath(d)
         elif node.tag == inkex.addNS('rect','svg'):
-            x = float(node.get('x'))
-            y = float(node.get('y'))
+            # note: x and y could be implicitly set to the top left of the canvas and then they are not added as attributes.
+            x = 0.0
+            y = 0.0
+            if node.get('x'):
+                x = float(node.get('x'))
+            if node.get('y'):
+                y = float(node.get('y'))
             width = float(node.get('width'))
             height = float(node.get('height'))
             #d = "M %f,%f %f,%f %f,%f %f,%f Z" %(x,y, x+width,y,  x+width,y+height, x,y+height) 
@@ -327,15 +349,15 @@ class SVG_READER(inkex.Effect):
         # Returns mm given a string representation of units in another system
         # a dictionary of unit to user unit conversion factors
         uuconv = {'in': 25.4,
-                  'pt': 25.4/72.0,
-                  #'px': 25.4/self.inkscape_dpi,
+                  'pt': 25.4 / 72.0,
+                  #'px': 25.4 / self.inkscape_dpi,
                   'mm': 1.0,
                   'cm': 10.0,
                   'm' : 1000.0,
-                  'km': 1000.0*1000.0,
-                  'pc': 25.4/6.0,
-                  'yd': 25.4*12*3,
-                  'ft': 25.4*12}
+                  'km': 1000.0 * 1000.0,
+                  'pc': 25.4 / 6.0,
+                  'yd': 25.4 * 12 * 3,
+                  'ft': 25.4 * 12}
   
         unit = re.compile('(%s)$' % '|'.join(uuconv.keys()))
         param = re.compile(r'(([-+]?[0-9]+(\.[0-9]*)?|[-+]?\.[0-9]+)([eE][-+]?[0-9]+)?)')
@@ -366,7 +388,7 @@ class SVG_READER(inkex.Effect):
                 svg_temp_file = os.path.join(tmp_dir, "k40w_temp.svg")
                 png_temp_file = os.path.join(tmp_dir, "k40w_image.png")
                 
-                dpi = "%d" %(self.image_dpi)           
+                dpi = "%d" %(self.image_dpi)
                 self.document.write(svg_temp_file)
                 cmd = [ self.inscape_exe, self.png_area, "--export-dpi", dpi, \
                         "--export-background","rgb(255, 255, 255)","--export-background-opacity", \
@@ -406,7 +428,7 @@ class SVG_READER(inkex.Effect):
     
     def make_paths(self, txt2paths=False ):
         self.txt2paths = txt2paths
-        msg               = ""
+        msg = ""
         
 ##        self.inkscape_dpi = None
 ##        try:

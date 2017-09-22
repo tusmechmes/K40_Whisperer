@@ -1034,6 +1034,7 @@ class Application(Frame):
         try:
             try:
                 svg_reader.parse(self.SVG_FILE)
+                svg_reader.fix_svg_coords()
                 svg_reader.make_paths()
             except SVG_TEXT_EXCEPTION as e:
                 self.statusMessage.set("Converting TEXT to PATHS.")
@@ -2393,7 +2394,8 @@ class Application(Frame):
         if self.Reng_image != None:
             if self.include_Reng.get():     
                 try:
-                    new_SCALE = (1.0/self.PlotScale)/1000
+                    dpi = 1000  # TODO: 
+                    new_SCALE = (1.0/self.PlotScale) / dpi 
                     if new_SCALE != self.SCALE:
                         self.SCALE = new_SCALE
                         nw=int(self.SCALE*self.wim)
@@ -2493,7 +2495,7 @@ class Application(Frame):
             
         yplt = Ytop  - YY/PlotScale
         self.segID.append(
-            self.PreviewCanvas.create_image(xplt, yplt, anchor=NW, image=self.UI_image,tags='LaserTag')
+            self.PreviewCanvas.create_image(xplt, yplt, anchor=NW, image=im,tags='LaserTag')
             )
         
     def Plot_circle(self, XX, YY, Xleft, Ytop, PlotScale, col, radius=0):

@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-version = '0.10'
+version = '0.10.tus.01'
 
 import sys
 from math import *
@@ -126,6 +126,7 @@ class Application(Frame):
         
         self.board_name = StringVar()
         self.units      = StringVar()
+        self.px2mm      = StringVar()
         self.jog_step   = StringVar()
         self.rast_step  = StringVar()
         self.funits     = StringVar()
@@ -185,6 +186,7 @@ class Application(Frame):
 
 
         self.units.set("mm")            # Options are "in" and "mm"
+        self.px2mm.set("0.1")
         self.t_timeout.set("2000")   
         self.n_timeouts.set("30")
 
@@ -553,6 +555,7 @@ class Application(Frame):
         # STRING.get()
         header.append('(k40_whisperer_set board_name    %s )'  %( self.board_name.get()     ))
         header.append('(k40_whisperer_set units         %s )'  %( self.units.get()          ))
+        header.append('(k40_whisperer_set px2mm         %s )'  %( self.px2mm.get()          ))
         header.append('(k40_whisperer_set Reng_feed     %s )'  %( self.Reng_feed.get()      ))
         header.append('(k40_whisperer_set Veng_feed     %s )'  %( self.Veng_feed.get()      ))
         header.append('(k40_whisperer_set Vcut_feed     %s )'  %( self.Vcut_feed.get()      ))
@@ -570,9 +573,6 @@ class Application(Frame):
         header.append('(k40_whisperer_set bezier_M2     %s )'  %( self.bezier_M2.get()      ))
         
         header.append('(k40_whisperer_set bezier_weight %s )'  %( self.bezier_weight.get()  ))
-
-
-
         
         header.append('(k40_whisperer_set t_timeout     %s )'  %( self.t_timeout.get()      ))
         header.append('(k40_whisperer_set n_timeouts    %s )'  %( self.n_timeouts.get()     ))
@@ -799,7 +799,20 @@ class Application(Frame):
             self.BezierCanvas.create_line( 5+x[i],260-y[i],5+x[i+1],260-y[i+1],fill="black", \
                                            capstyle="round", width = 2, tags='bez')
         self.BezierCanvas.create_text(128, 0, text="Output Level vs. Input Level",anchor="n", tags='bez')
-            
+
+    #############################
+    def Entry_px2mm_Check(self):
+        try:
+            value = float(self.px2mm.get())
+            if  value <= 0.0:
+                self.statusMessage.set(" px to mm should be greater than 0 ")
+                return 2 # Value is invalid number
+        except:
+            return 3     # Value not a number
+        return 0         # Value is a valid number
+    def Entry_px2mm_Callback(self, varName, index, mode):
+        self.entry_set(self.Entry_px2mm,self.Entry_px2mm_Check(), new=1)
+             
     #############################
     def Entry_Timeout_Check(self):
         try:
@@ -1029,7 +1042,8 @@ class Application(Frame):
         self.Vcut_bounds = (0,0,0,0)
         
         self.SVG_FILE = filemname
-        svg_reader =  SVG_READER()
+        # TODO: pass in the settings class (soon to be created) instead of px2mm value
+        svg_reader = SVG_READER(self.px2mm.get())
         svg_reader.set_inkscape_path(self.inkscape_path.get())
         try:
             try:
@@ -1394,6 +1408,8 @@ class Application(Frame):
                     self.board_name.set(line[line.find("board_name"):].split()[1])
                 elif "units"    in line:
                     self.units.set(line[line.find("units"):].split()[1])
+                elif "px2mm"    in line:
+                    self.px2mm.set(line[line.find("px2mm"):].split()[1])
                 elif "Reng_feed"    in line:
                      self.Reng_feed .set(line[line.find("Reng_feed"):].split()[1])
                 elif "Veng_feed"    in line:
@@ -2554,18 +2570,28 @@ class Application(Frame):
         xd_units_L=xd_entry_L+w_entry+5
 
         #Radio Button
+        # units
         D_Yloc=D_Yloc+D_dY
         self.Label_Units = Label(gen_settings,text="Units")
         self.Label_Units.place(x=xd_label_L, y=D_Yloc, width=113, height=21)
-        self.Radio_Units_IN = Radiobutton(gen_settings,text="inch", value="in",
-                                         width="100", anchor=W)
+        self.Radio_Units_IN = Radiobutton(gen_settings,text="inch", value="in", width="100", anchor=W)
         self.Radio_Units_IN.place(x=w_label+22, y=D_Yloc, width=75, height=23)
         self.Radio_Units_IN.configure(variable=self.units, command=self.Entry_units_var_Callback )
-        self.Radio_Units_MM = Radiobutton(gen_settings,text="mm", value="mm",
-                                         width="100", anchor=W)
+        self.Radio_Units_MM = Radiobutton(gen_settings,text="mm", value="mm", width="100", anchor=W)
         self.Radio_Units_MM.place(x=w_label+110, y=D_Yloc, width=75, height=23)
         self.Radio_Units_MM.configure(variable=self.units, command=self.Entry_units_var_Callback )
 
+        # px to mm
+        D_Yloc=D_Yloc+D_dY
+        self.Label_px2mm = Label(gen_settings,text="px to mm ratio")
+        self.Label_px2mm.place(x=xd_label_L, y=D_Yloc, width=113, height=21)
+        self.Entry_px2mm = Entry(gen_settings,width="15")
+        self.Entry_px2mm.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
+        self.Entry_px2mm.configure(textvariable = self.px2mm)
+        self.px2mm.trace_variable("w", self.Entry_px2mm_Callback)
+        self.entry_set(self.Entry_px2mm, self.Entry_px2mm_Check(), 2)
+
+        # timeout
         D_Yloc=D_Yloc+D_dY
         self.Label_Timeout = Label(gen_settings,text="USB Timeout")
         self.Label_Timeout.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
@@ -2577,6 +2603,7 @@ class Application(Frame):
         self.t_timeout.trace_variable("w", self.Entry_Timeout_Callback)
         self.entry_set(self.Entry_Timeout,self.Entry_Timeout_Check(),2)
 
+        # number of timeouts
         D_Yloc=D_Yloc+D_dY
         self.Label_N_Timeouts = Label(gen_settings,text="Number of Timeouts")
         self.Label_N_Timeouts.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
@@ -2586,7 +2613,7 @@ class Application(Frame):
         self.n_timeouts.trace_variable("w", self.Entry_N_Timeouts_Callback)
         self.entry_set(self.Entry_N_Timeouts,self.Entry_N_Timeouts_Check(),2)
 
-
+        # Inskscape path
         D_Yloc=D_Yloc+D_dY
         font_entry_width=215
         self.Label_Inkscape_Path = Label(gen_settings,text="Inkscape Executable")
@@ -2598,6 +2625,7 @@ class Application(Frame):
         self.Inkscape_Path.place(x=xd_entry_L+font_entry_width+10, y=D_Yloc, width=110, height=23)
         self.Inkscape_Path.bind("<ButtonRelease-1>", self.Inkscape_Path_Click)
 
+        # home location (TL, BR)
         D_Yloc=D_Yloc+D_dY
         self.Label_no_com = Label(gen_settings,text="Home in Upper Right")
         self.Label_no_com.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
@@ -2606,6 +2634,7 @@ class Application(Frame):
         self.Checkbutton_no_com.configure(variable=self.HomeUR)
         self.HomeUR.trace_variable("w",self.menu_View_Refresh_Callback)
 
+        # board name
         D_Yloc=D_Yloc+D_dY 
         self.Label_Board_Name      = Label(gen_settings,text="Board Name", anchor=CENTER )
         self.Board_Name_OptionMenu = OptionMenu(gen_settings, self.board_name,
@@ -2626,6 +2655,7 @@ class Application(Frame):
         self.Board_Name_OptionMenu['menu'].entryconfigure("LASER-B" , state="disabled")
         self.Board_Name_OptionMenu['menu'].entryconfigure("LASER-A" , state="disabled")
 
+        # laser area (width)
         D_Yloc=D_Yloc+D_dY
         self.Label_Laser_Area_Width = Label(gen_settings,text="Laser Area Width")
         self.Label_Laser_Area_Width.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
@@ -2637,6 +2667,7 @@ class Application(Frame):
         self.LaserXsize.trace_variable("w", self.Entry_Laser_Area_Width_Callback)
         self.entry_set(self.Entry_Laser_Area_Width,self.Entry_Laser_Area_Width_Check(),2)
 
+        # laser area (height)
         D_Yloc=D_Yloc+D_dY
         self.Label_Laser_Area_Height = Label(gen_settings,text="Laser Area Height")
         self.Label_Laser_Area_Height.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
@@ -2648,6 +2679,7 @@ class Application(Frame):
         self.LaserYsize.trace_variable("w", self.Entry_Laser_Area_Height_Callback)
         self.entry_set(self.Entry_Laser_Area_Height,self.Entry_Laser_Area_Height_Check(),2)
 
+        # save button
         D_Yloc=D_Yloc+D_dY+10
         self.Label_SaveConfig = Label(gen_settings,text="Configuration File")
         self.Label_SaveConfig.place(x=xd_label_L, y=D_Yloc, width=113, height=21)

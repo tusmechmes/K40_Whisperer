@@ -59,7 +59,7 @@ class SVG_TEXT_EXCEPTION(Exception):
 
 class SVG_READER(inkex.Effect):
 #class SVG_READER:
-    def __init__(self):
+    def __init__(self, settings):
         inkex.Effect.__init__(self)
         self.flatness = 0.01
         self.image_dpi = 1000
@@ -88,6 +88,9 @@ class SVG_READER(inkex.Effect):
         self.layernames = []
         self.txt2paths = False
 
+        # TODO: curretly settings is only 1 number (px2mm) in the future we need to pass all the settings to be used in a class
+        self.px2mm = float(settings)
+
         
     def set_inkscape_path(self,PATH):
         if PATH!=None:
@@ -99,10 +102,9 @@ class SVG_READER(inkex.Effect):
     
     def px_to_mm(self, node):
         sval = str(node)
-        px2mmRatio = 0.1  # TODO: make this configurable through settings
         if sval[(len(sval)-2):(len(sval))] == 'px':
             nval = float(sval[0:(len(sval)-2)])
-            nval = nval * px2mmRatio
+            nval = nval * self.px2mm
             node._parent.set(node.attrname, str(nval) + 'mm')
 
     def fix_svg_coords(self):
@@ -549,6 +551,6 @@ class SVG_READER(inkex.Effect):
                 pass
                 
 if __name__ == '__main__':
-    svg_reader =  SVG_READER()
+    svg_reader =  SVG_READER(0.1)
     #svg_reader.parse("test.svg")
     #svg_reader.make_paths()

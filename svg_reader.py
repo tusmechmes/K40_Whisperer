@@ -88,23 +88,22 @@ class SVG_READER(inkex.Effect):
         self.layernames = []
         self.txt2paths = False
 
-        # TODO: curretly settings is only 1 number (px2mm) in the future we need to pass all the settings to be used in a class
-        self.px2mm = float(settings)
+        self.settings = settings
+        self.set_inkscape_path(settings.inkscape_path.get())
 
-        
-    def set_inkscape_path(self,PATH):
-        if PATH!=None:
-            self.inscape_exe_list.insert(0,PATH)
+    def set_inkscape_path(self, PATH):
+        if PATH != None:
+            self.inscape_exe_list.insert(0, PATH)
         for location in self.inscape_exe_list:
             if ( os.path.isfile( location ) ):
-                self.inscape_exe=location
+                self.inscape_exe = location
                 break
     
     def px_to_mm(self, node):
         sval = str(node)
         if sval[(len(sval)-2):(len(sval))] == 'px':
             nval = float(sval[0:(len(sval)-2)])
-            nval = nval * self.px2mm
+            nval = nval * float(self.settings.px2mm.get())
             node._parent.set(node.attrname, str(nval) + 'mm')
 
     def fix_svg_coords(self):

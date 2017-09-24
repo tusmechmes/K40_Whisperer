@@ -529,7 +529,7 @@ class Settings(object):
         self.Set_Input_States_RASTER()
 
     ##########################################################################
-    # Menu Events
+    # UI Events
     ##########################################################################
     def Write_Config_File(self, event):
         config_file = "k40_whisperer.txt"
@@ -598,7 +598,23 @@ class Settings(object):
         self.bezier_plot()
     def bezier_M2_Callback(self, varName=None, index=None, mode=None):
         self.bezier_plot()
-    #############################
+    def Entry_Reng_feed_Check(self):
+        return self.entry_check_var_float_greater_than_0(self.Reng_feed, "Feed Rate")
+    def Entry_Veng_feed_Check(self):
+        return self.entry_check_var_float_greater_than_0(self.Veng_feed, "Feed Rate")
+    def Entry_Vcut_feed_Check(self):
+        return self.entry_check_var_float_greater_than_0(self.Vcut_feed, "Feed Rate")
+    def Entry_Step_Check(self):
+        return self.entry_check_var_float_greater_than_0(self.jog_step, "Step")
+    def Entry_GoToX_Check(self):
+        if self.HomeUR.get():
+            return self.entry_check_var_limits(self.gotoX, "Value", valtype="float", limit1=0.0, expr1="<=")
+        else:
+            return self.entry_check_var_limits(self.gotoX, "Value", valtype="float", limit1=0.0, expr1=">=")
+    def Entry_GoToY_Check(self):
+        return self.entry_check_var_limits(self.gotoY, "Value", valtype="float", limit1=0.0, expr1="<=")
+ 
+    ##########################################################################
 
 
     ##########################################################################
@@ -636,9 +652,6 @@ class Settings(object):
 
     def entry_check_var_float_greater_than_0(self, var, var_friendly_name):
         return self.entry_check_var_limits(var, var_friendly_name, valtype="float", limit1=0.0, expr1=">")
-
-    #def entry_check_var_float_between_min_max(self, var, var_friendly_name, minval, maxval):
-    #    return self.entry_check_var_limits(var, var_friendly_name, valtype="float", limit1=minval, expr1=">=", limit2=maxval, expr2="<=")
 
     def entry_callback(self, uielement, check_function, varName, index, mode):
         return self.entry_set(uielement, check_function(), new=1)

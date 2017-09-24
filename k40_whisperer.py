@@ -152,21 +152,21 @@ class Application(Frame):
         self.Entry_Reng_feed = Entry(self.master, width="15")
         self.Entry_Reng_feed.configure(textvariable=self.settings.Reng_feed, justify='center',fg="black")
         self.Entry_Reng_feed.bind('<Return>', self.Recalculate_Click)
-        self.settings.Reng_feed.trace_variable("w", self.Entry_Reng_feed_Callback)
+        self.settings.Reng_feed.trace_variable("w", lambda v, i, n, uie=self.Entry_Reng_feed, func=self.settings.Entry_Reng_feed_Check: self.settings.entry_callback(uie, func, v, i, n))
         self.NormalColor = self.Entry_Reng_feed.cget('bg')
 
         self.Label_Veng_feed_u = Label(self.master, textvariable=self.settings.funits, anchor=W)
         self.Entry_Veng_feed = Entry(self.master, width="15")
         self.Entry_Veng_feed.configure(textvariable=self.settings.Veng_feed, justify='center',fg="blue")
         self.Entry_Veng_feed.bind('<Return>', self.Recalculate_Click)
-        self.settings.Veng_feed.trace_variable("w", self.Entry_Veng_feed_Callback)
+        self.settings.Veng_feed.trace_variable("w", lambda v, i, n, uie=self.Entry_Veng_feed, func=self.settings.Entry_Veng_feed_Check: self.settings.entry_callback(uie, func, v, i, n))
         self.NormalColor = self.Entry_Veng_feed.cget('bg')
 
         self.Label_Vcut_feed_u = Label(self.master, textvariable=self.settings.funits, anchor=W)
         self.Entry_Vcut_feed   = Entry(self.master, width="15")
         self.Entry_Vcut_feed.configure(textvariable=self.settings.Vcut_feed, justify='center',fg="red")
         self.Entry_Vcut_feed.bind('<Return>', self.Recalculate_Click)
-        self.settings.Vcut_feed.trace_variable("w", self.Entry_Vcut_feed_Callback)
+        self.settings.Vcut_feed.trace_variable("w", lambda v, i, n, uie=self.Entry_Vcut_feed, func=self.settings.Entry_Vcut_feed_Check: self.settings.entry_callback(uie, func, v, i, n))
         self.NormalColor =  self.Entry_Vcut_feed.cget('bg')
 
         # Buttons
@@ -220,7 +220,7 @@ class Application(Frame):
         self.Label_Step_u = Label(self.master,textvariable=self.settings.units, anchor=W)
         self.Entry_Step = Entry(self.master,width="15")
         self.Entry_Step.configure(textvariable=self.settings.jog_step, justify='center')
-        self.settings.jog_step.trace_variable("w", self.Entry_Step_Callback)
+        self.settings.jog_step.trace_variable("w", lambda v, i, n, uie=self.Entry_Step, func=self.settings.Entry_Step_Check: self.settings.entry_callback(uie, func, v, i, n)) 
 
         ###########################################################################
         self.GoTo_Button = Button(self.master, text="Move To", command=self.GoTo)
@@ -228,12 +228,12 @@ class Application(Frame):
         self.Label_GoToX = Label(self.master, text="X", anchor=CENTER )
         self.Entry_GoToX = Entry(self.master, width="15",justify='center')
         self.Entry_GoToX.configure(textvariable=self.settings.gotoX)
-        self.settings.gotoX.trace_variable("w", self.Entry_GoToX_Callback)
+        self.settings.gotoX.trace_variable("w", lambda v, i, n, uie=self.Entry_GoToX, func=self.settings.Entry_GoToX_Check: self.settings.entry_callback(uie, func, v, i, n))
         
         self.Label_GoToY = Label(self.master, text="Y", anchor=CENTER )
         self.Entry_GoToY = Entry(self.master, width="15", justify='center')
         self.Entry_GoToY.configure(textvariable=self.settings.gotoY)
-        self.settings.gotoY.trace_variable("w", self.Entry_GoToY_Callback)        
+        self.settings.gotoY.trace_variable("w", lambda v, i, n, uie=self.Entry_GoToY, func=self.settings.Entry_GoToY_Check: self.settings.entry_callback(uie, func, v, i, n))    
         ###########################################################################
         
         # End Left Column #
@@ -321,96 +321,6 @@ class Application(Frame):
 ##                sys.exit()
 ##            if option in ('-o','--other_option'):
 ##                pass
-
-    ##########################################################################
-    # UI Events
-    ##########################################################################
-    def Entry_Reng_feed_Check(self):
-        try:
-            value = float(self.settings.Reng_feed.get())
-            if  value <= 0.0:
-                message_status_bar(" Feed Rate should be greater than 0.0 ", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-
-    def Entry_Reng_feed_Callback(self, varName, index, mode):
-        self.settings.entry_set(self.Entry_Reng_feed, self.Entry_Reng_feed_Check(), new=1)        
-
-    #############################
-    def Entry_Veng_feed_Check(self):
-        try:
-            value = float(self.settings.Veng_feed.get())
-            if  value <= 0.0:
-                message_status_bar(" Feed Rate should be greater than 0.0 ", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-
-    def Entry_Veng_feed_Callback(self, varName, index, mode):
-        self.settings.entry_set(self.Entry_Veng_feed, self.Entry_Veng_feed_Check(), new=1)
- 
-    #############################
-    def Entry_Vcut_feed_Check(self):
-        try:
-            value = float(self.settings.Vcut_feed.get())
-            if  value <= 0.0:
-                message_status_bar(" Feed Rate should be greater than 0.0 ", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-
-    def Entry_Vcut_feed_Callback(self, varName, index, mode):
-        self.settings.entry_set(self.Entry_Vcut_feed, self.Entry_Vcut_feed_Check(), new=1)
-        
-    #############################
-    def Entry_Step_Check(self):
-        try:
-            value = float(self.settings.jog_step.get())
-            if  value <= 0.0:
-                message_status_bar(" Step should be greater than 0.0 ", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-
-    def Entry_Step_Callback(self, varName, index, mode):
-        self.settings.entry_set(self.Entry_Step, self.Entry_Step_Check(), new=1)
-
-    #############################
-    def Entry_GoToX_Check(self):
-        try:
-            value = float(self.settings.gotoX.get())
-            if  (value < 0.0) and (not self.HomeUR.get()):
-                message_status_bar(" Value should be greater than 0.0 ", 'red')
-                return 2 # Value is invalid number
-            elif (value > 0.0) and self.HomeUR.get():
-                message_status_bar(" Value should be less than 0.0 ", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-
-    def Entry_GoToX_Callback(self, varName, index, mode):
-        self.settings.entry_set(self.Entry_GoToX, self.Entry_GoToX_Check(), new=1)
-
-    #############################
-    def Entry_GoToY_Check(self):
-        try:
-            value = float(self.settings.gotoY.get())
-            if  value > 0.0:
-                message_status_bar(" Value should be less than 0.0 ", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-    def Entry_GoToY_Callback(self, varName, index, mode):
-        self.settings.entry_set(self.Entry_GoToY, self.Entry_GoToY_Check(), new=1)
-
-    ################################################################################
 
     ##########################################################################
     # Menu Events

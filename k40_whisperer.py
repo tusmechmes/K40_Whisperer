@@ -73,11 +73,11 @@ except:
 ################################################################################
 class Application(Frame):
     def __init__(self, master):
-        self.settings = Settings()
         Frame.__init__(self, master)
+        self.settings = Settings()
         self.w = 780
         self.h = 490
-        frame = Frame(master, width=self.w, height=self.h)
+        frame = Frame(master, width=self.w, height=self.h, name="master")
         self.master = master
         self.x = -1
         self.y = -1

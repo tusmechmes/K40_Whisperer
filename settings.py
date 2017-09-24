@@ -36,6 +36,8 @@ class Settings(object):
             self.HOME_DIR = ""
         self.DESIGN_FILE = (self.HOME_DIR + "/None")
         self.units_scale = 1.0
+        self.BezierCanvas = None
+        self.raster_settings = None
 
         self.__create_ui_vars__()
         self.__set_default_values__()
@@ -292,134 +294,133 @@ class Settings(object):
         #Radio Button
         # units
         D_Yloc = D_Yloc+D_dY
-        self.Label_Units = Label(gen_settings, text="Units")
-        self.Label_Units.place(x=xd_label_L, y=D_Yloc, width=113, height=21)
-        self.Radio_Units_IN = Radiobutton(gen_settings, text="inch", value="in", width="100", anchor=W)
-        self.Radio_Units_IN.place(x=w_label+22, y=D_Yloc, width=75, height=23)
-        self.Radio_Units_IN.configure(variable=self.units, command=self.Entry_units_var_Callback)
-        self.Radio_Units_MM = Radiobutton(gen_settings, text="mm", value="mm", width="100", anchor=W)
-        self.Radio_Units_MM.place(x=w_label+110, y=D_Yloc, width=75, height=23)
-        self.Radio_Units_MM.configure(variable=self.units, command=self.Entry_units_var_Callback)
+        Label_Units = Label(gen_settings, text="Units")
+        Label_Units.place(x=xd_label_L, y=D_Yloc, width=113, height=21)
+        Radio_Units_IN = Radiobutton(gen_settings, text="inch", value="in", width="100", anchor=W)
+        Radio_Units_IN.place(x=w_label+22, y=D_Yloc, width=75, height=23)
+        Radio_Units_IN.configure(variable=self.units, command=self.Entry_units_var_Callback)
+        Radio_Units_MM = Radiobutton(gen_settings, text="mm", value="mm", width="100", anchor=W)
+        Radio_Units_MM.place(x=w_label+110, y=D_Yloc, width=75, height=23)
+        Radio_Units_MM.configure(variable=self.units, command=self.Entry_units_var_Callback)
 
         # px to mm
         D_Yloc = D_Yloc+D_dY
-        self.Label_px2mm = Label(gen_settings, text="px to mm ratio")
-        self.Label_px2mm.place(x=xd_label_L, y=D_Yloc, width=113, height=21)
-        self.Entry_px2mm = Entry(gen_settings, width="15")
-        self.Entry_px2mm.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
-        self.Entry_px2mm.configure(textvariable=self.px2mm)
-        self.px2mm.trace_variable("w", self.Entry_px2mm_Callback)
-        self.entry_set(self.Entry_px2mm, self.Entry_px2mm_Check(), 2)
+        Label_px2mm = Label(gen_settings, text="px to mm ratio")
+        Label_px2mm.place(x=xd_label_L, y=D_Yloc, width=113, height=21)
+        Entry_px2mm = Entry(gen_settings, width="15")
+        Entry_px2mm.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
+        Entry_px2mm.configure(textvariable=self.px2mm)
+        self.px2mm.trace_variable("w", lambda v, i, n, uie=Entry_px2mm, func=self.Entry_px2mm_Check: self.entry_callback(uie, func, v, i, n))
+        self.entry_set(Entry_px2mm, self.Entry_px2mm_Check(), 2)
+
 
         # timeout
         D_Yloc = D_Yloc+D_dY
-        self.Label_Timeout = Label(gen_settings, text="USB Timeout")
-        self.Label_Timeout.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Label_Timeout_u = Label(gen_settings, text="ms", anchor=W)
-        self.Label_Timeout_u.place(x=xd_units_L, y=D_Yloc, width=w_units, height=21)
-        self.Entry_Timeout = Entry(gen_settings, width="15")
-        self.Entry_Timeout.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
-        self.Entry_Timeout.configure(textvariable=self.t_timeout)
-        self.t_timeout.trace_variable("w", self.Entry_Timeout_Callback)
-        self.entry_set(self.Entry_Timeout, self.Entry_Timeout_Check(), 2)
+        Label_Timeout = Label(gen_settings, text="USB Timeout")
+        Label_Timeout.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        Label_Timeout_u = Label(gen_settings, text="ms", anchor=W)
+        Label_Timeout_u.place(x=xd_units_L, y=D_Yloc, width=w_units, height=21)
+        Entry_Timeout = Entry(gen_settings, width="15")
+        Entry_Timeout.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
+        Entry_Timeout.configure(textvariable=self.t_timeout)
+        self.t_timeout.trace_variable("w", lambda v, i, n, uie=Entry_Timeout, func=self.Entry_Timeout_Check: self.entry_callback(uie, func, v, i, n))
+        self.entry_set(Entry_Timeout, self.Entry_Timeout_Check(), 2)
 
         # number of timeouts
         D_Yloc = D_Yloc+D_dY
-        self.Label_N_Timeouts = Label(gen_settings, text="Number of Timeouts")
-        self.Label_N_Timeouts.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Entry_N_Timeouts = Entry(gen_settings, width="15")
-        self.Entry_N_Timeouts.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
-        self.Entry_N_Timeouts.configure(textvariable=self.n_timeouts)
-        self.n_timeouts.trace_variable("w", self.Entry_N_Timeouts_Callback)
-        self.entry_set(self.Entry_N_Timeouts, self.Entry_N_Timeouts_Check(), 2)
+        Label_N_Timeouts = Label(gen_settings, text="Number of Timeouts")
+        Label_N_Timeouts.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        Entry_N_Timeouts = Entry(gen_settings, width="15")
+        Entry_N_Timeouts.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
+        Entry_N_Timeouts.configure(textvariable=self.n_timeouts)
+        self.n_timeouts.trace_variable("w", lambda v, i, n, uie=Entry_N_Timeouts, func=self.Entry_N_Timeouts_Check: self.entry_callback(uie, func, v, i, n))
+        self.entry_set(Entry_N_Timeouts, self.Entry_N_Timeouts_Check(), 2)
 
         # Inskscape path
         D_Yloc = D_Yloc+D_dY
         font_entry_width = 215
-        self.Label_Inkscape_Path = Label(gen_settings, text="Inkscape Executable")
-        self.Label_Inkscape_Path.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Entry_Inkscape_Path = Entry(gen_settings, width="15")
-        self.Entry_Inkscape_Path.place(x=xd_entry_L, y=D_Yloc, width=font_entry_width, height=23)
-        self.Entry_Inkscape_Path.configure(textvariable=self.inkscape_path)
-        self.Inkscape_Path = Button(gen_settings, text="Find Inkscape")
-        self.Inkscape_Path.place(x=xd_entry_L+font_entry_width+10, y=D_Yloc, width=110, height=23)
-        self.Inkscape_Path.bind("<ButtonRelease-1>", self.Inkscape_Path_Click)
+        Label_Inkscape_Path = Label(gen_settings, text="Inkscape Executable")
+        Label_Inkscape_Path.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        Entry_Inkscape_Path = Entry(gen_settings, width="15")
+        Entry_Inkscape_Path.place(x=xd_entry_L, y=D_Yloc, width=font_entry_width, height=23)
+        Entry_Inkscape_Path.configure(textvariable=self.inkscape_path)
+        Inkscape_Path = Button(gen_settings, text="Find Inkscape")
+        Inkscape_Path.place(x=xd_entry_L+font_entry_width+10, y=D_Yloc, width=110, height=23)
+        Inkscape_Path.bind("<ButtonRelease-1>", self.Inkscape_Path_Click)
 
         # home location (TL, BR)
         D_Yloc = D_Yloc+D_dY
-        self.Label_no_com = Label(gen_settings, text="Home in Upper Right")
-        self.Label_no_com.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Checkbutton_no_com = Checkbutton(gen_settings, text="", anchor=W)
-        self.Checkbutton_no_com.place(x=xd_entry_L, y=D_Yloc, width=75, height=23)
-        self.Checkbutton_no_com.configure(variable=self.HomeUR)
+        Label_no_com = Label(gen_settings, text="Home in Upper Right")
+        Label_no_com.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        Checkbutton_no_com = Checkbutton(gen_settings, text="", anchor=W)
+        Checkbutton_no_com.place(x=xd_entry_L, y=D_Yloc, width=75, height=23)
+        Checkbutton_no_com.configure(variable=self.HomeUR)
         self.HomeUR.trace_variable("w", self.menu_View_Refresh_Callback)
 
         # board name
         D_Yloc = D_Yloc+D_dY
-        self.Label_Board_Name = Label(gen_settings, text="Board Name", anchor=CENTER)
-        self.Board_Name_OptionMenu = OptionMenu(gen_settings, self.board_name, "LASER-M2", "LASER-M1", "LASER-M", "LASER-B2", "LASER-B1", "LASER-B", "LASER-A")
-        self.Label_Board_Name.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Board_Name_OptionMenu.place(x=xd_entry_L, y=D_Yloc, width=w_entry*3, height=23)
+        Label_Board_Name = Label(gen_settings, text="Board Name", anchor=CENTER)
+        Board_Name_OptionMenu = OptionMenu(gen_settings, self.board_name, "LASER-M2", "LASER-M1", "LASER-M", "LASER-B2", "LASER-B1", "LASER-B", "LASER-A")
+        Label_Board_Name.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        Board_Name_OptionMenu.place(x=xd_entry_L, y=D_Yloc, width=w_entry*3, height=23)
 
-        self.Board_Name_OptionMenu['menu'].entryconfigure("LASER-M1", state="disabled")
-        self.Board_Name_OptionMenu['menu'].entryconfigure("LASER-M", state="disabled")
-        self.Board_Name_OptionMenu['menu'].entryconfigure("LASER-B2", state="disabled")
-        self.Board_Name_OptionMenu['menu'].entryconfigure("LASER-B1", state="disabled")
-        self.Board_Name_OptionMenu['menu'].entryconfigure("LASER-B", state="disabled")
-        self.Board_Name_OptionMenu['menu'].entryconfigure("LASER-A", state="disabled")
+        Board_Name_OptionMenu['menu'].entryconfigure("LASER-M1", state="disabled")
+        Board_Name_OptionMenu['menu'].entryconfigure("LASER-M", state="disabled")
+        Board_Name_OptionMenu['menu'].entryconfigure("LASER-B2", state="disabled")
+        Board_Name_OptionMenu['menu'].entryconfigure("LASER-B1", state="disabled")
+        Board_Name_OptionMenu['menu'].entryconfigure("LASER-B", state="disabled")
+        Board_Name_OptionMenu['menu'].entryconfigure("LASER-A", state="disabled")
 
         # laser area (width)
         D_Yloc = D_Yloc+D_dY
-        self.Label_Laser_Area_Width = Label(gen_settings, text="Laser Area Width")
-        self.Label_Laser_Area_Width.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Label_Laser_Area_Width_u = Label(gen_settings, textvariable=self.units, anchor=W)
-        self.Label_Laser_Area_Width_u.place(x=xd_units_L, y=D_Yloc, width=w_units, height=21)
-        self.Entry_Laser_Area_Width = Entry(gen_settings, width="15")
-        self.Entry_Laser_Area_Width.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
-        self.Entry_Laser_Area_Width.configure(textvariable=self.LaserXsize)
-        self.LaserXsize.trace_variable("w", self.Entry_Laser_Area_Width_Callback)
-        self.entry_set(self.Entry_Laser_Area_Width, self.Entry_Laser_Area_Width_Check(), 2)
+        Label_Laser_Area_Width = Label(gen_settings, text="Laser Area Width")
+        Label_Laser_Area_Width.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        Label_Laser_Area_Width_u = Label(gen_settings, textvariable=self.units, anchor=W)
+        Label_Laser_Area_Width_u.place(x=xd_units_L, y=D_Yloc, width=w_units, height=21)
+        Entry_Laser_Area_Width = Entry(gen_settings, width="15")
+        Entry_Laser_Area_Width.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
+        Entry_Laser_Area_Width.configure(textvariable=self.LaserXsize)
+        self.LaserXsize.trace_variable("w", lambda v, i, n, uie=Entry_Laser_Area_Width, func=self.Entry_Laser_Area_Width_Check: self.entry_callback(uie, func, v, i, n))
+        self.entry_set(Entry_Laser_Area_Width, self.Entry_Laser_Area_Width_Check(), 2)
 
         # laser area (height)
         D_Yloc = D_Yloc+D_dY
-        self.Label_Laser_Area_Height = Label(gen_settings, text="Laser Area Height")
-        self.Label_Laser_Area_Height.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Label_Laser_Area_Height_u = Label(gen_settings, textvariable=self.units, anchor=W)
-        self.Label_Laser_Area_Height_u.place(x=xd_units_L, y=D_Yloc, width=w_units, height=21)
-        self.Entry_Laser_Area_Height = Entry(gen_settings, width="15")
-        self.Entry_Laser_Area_Height.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
-        self.Entry_Laser_Area_Height.configure(textvariable=self.LaserYsize)
-        self.LaserYsize.trace_variable("w", self.Entry_Laser_Area_Height_Callback)
-        self.entry_set(self.Entry_Laser_Area_Height, self.Entry_Laser_Area_Height_Check(), 2)
+        Label_Laser_Area_Height = Label(gen_settings, text="Laser Area Height")
+        Label_Laser_Area_Height.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        Label_Laser_Area_Height_u = Label(gen_settings, textvariable=self.units, anchor=W)
+        Label_Laser_Area_Height_u.place(x=xd_units_L, y=D_Yloc, width=w_units, height=21)
+        Entry_Laser_Area_Height = Entry(gen_settings, width="15")
+        Entry_Laser_Area_Height.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
+        Entry_Laser_Area_Height.configure(textvariable=self.LaserYsize)
+        self.LaserYsize.trace_variable("w", lambda v, i, n, uie=Entry_Laser_Area_Height, func=self.Entry_Laser_Area_Height_Check: self.entry_callback(uie, func, v, i, n))
+        self.entry_set(Entry_Laser_Area_Height, self.Entry_Laser_Area_Height_Check(), 2)
 
         # save button
         D_Yloc = D_Yloc+D_dY+10
-        self.Label_SaveConfig = Label(gen_settings, text="Configuration File")
-        self.Label_SaveConfig.place(x=xd_label_L, y=D_Yloc, width=113, height=21)
-
-        self.GEN_SaveConfig = Button(gen_settings, text="Save")
-        self.GEN_SaveConfig.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=21, anchor="nw")
-        self.GEN_SaveConfig.bind("<ButtonRelease-1>", self.Write_Config_File)
+        Label_SaveConfig = Label(gen_settings, text="Configuration File")
+        Label_SaveConfig.place(x=xd_label_L, y=D_Yloc, width=113, height=21)
+        GEN_SaveConfig = Button(gen_settings, text="Save")
+        GEN_SaveConfig.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=21, anchor="nw")
+        GEN_SaveConfig.bind("<ButtonRelease-1>", self.Write_Config_File)
 
         ## Buttons ##
         gen_settings.update_idletasks()
         Ybut = int(gen_settings.winfo_height())-30
         Xbut = int(gen_settings.winfo_width()/2)
-
-        self.GEN_Close = Button(gen_settings, text="Close", command=self.__close_window__)
-        self.GEN_Close.place(x=Xbut, y=Ybut, width=130, height=30, anchor="center")
+        GEN_Close = Button(gen_settings, text="Close", command=self.__close_window__)
+        GEN_Close.place(x=Xbut, y=Ybut, width=130, height=30, anchor="center")
 
     def show_raster_settings_dialog(self):
         Wset = 425+280
         Hset = 330 #260
-        raster_settings = Toplevel(width=Wset, height=Hset)
-        raster_settings.grab_set() # Use grab_set to prevent user input in the main window during calculations
-        raster_settings.resizable(0, 0)
-        raster_settings.title('Raster Settings')
-        raster_settings.iconname("Raster Settings")
+        self.raster_settings = Toplevel(width=Wset, height=Hset, name="raster_settings")
+        self.raster_settings.grab_set() # Use grab_set to prevent user input in the main window during calculations
+        self.raster_settings.resizable(0, 0)
+        self.raster_settings.title('Raster Settings')
+        self.raster_settings.iconname("Raster Settings")
 
         try:
-            raster_settings.iconbitmap(bitmap="@emblem64")
+            self.raster_settings.iconbitmap(bitmap="@emblem64")
         except:
             debug_message(traceback.format_exc())
 
@@ -433,33 +434,40 @@ class Settings(object):
         xd_units_L = xd_entry_L+w_entry+5
 
         D_Yloc = D_Yloc+D_dY
-        self.Label_Rstep = Label(raster_settings, text="Scanline Step", anchor=CENTER)
-        self.Label_Rstep.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Label_Rstep_u = Label(raster_settings, text="in", anchor=W)
-        self.Label_Rstep_u.place(x=xd_units_L, y=D_Yloc, width=w_units, height=21)
-        self.Entry_Rstep = Entry(raster_settings, width="15")
-        self.Entry_Rstep.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
-        self.Entry_Rstep.configure(textvariable=self.rast_step)
-        self.rast_step.trace_variable("w", self.Entry_Rstep_Callback)
+        label_Rstep = Label(self.raster_settings, text="Scanline Step", anchor=CENTER, name="label_Rstep")
+        label_Rstep.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        label_Rstep_u = Label(self.raster_settings, text="in", anchor=W)
+        label_Rstep_u.place(x=xd_units_L, y=D_Yloc, width=w_units, height=21)
+        Entry_Rstep = Entry(self.raster_settings, width="15")
+        Entry_Rstep.place(x=xd_entry_L, y=D_Yloc, width=w_entry, height=23)
+        Entry_Rstep.configure(textvariable=self.rast_step)
+        self.rast_step.trace_variable("w", lambda v, i, n, uie=Entry_Rstep, func=self.Entry_Rstep_Check: self.entry_callback(uie, func, v, i, n))
 
         D_Yloc = D_Yloc+D_dY
-        self.Label_Halftone = Label(raster_settings, text="Halftone")
-        self.Label_Halftone.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Checkbutton_Halftone = Checkbutton(raster_settings, text=" ", anchor=W, command=self.Set_Input_States_RASTER)
-        self.Checkbutton_Halftone.place(x=w_label+22, y=D_Yloc, width=75, height=23)
-        self.Checkbutton_Halftone.configure(variable=self.halftone)
+        label_Halftone = Label(self.raster_settings, text="Halftone")
+        label_Halftone.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        Checkbutton_Halftone = Checkbutton(self.raster_settings, text=" ", anchor=W, command=self.Set_Input_States_RASTER)
+        Checkbutton_Halftone.place(x=w_label+22, y=D_Yloc, width=75, height=23)
+        Checkbutton_Halftone.configure(variable=self.halftone)
         self.halftone.trace_variable("w", self.Halftone_Callback)
 
         ############
+        # group some UI elements so we can bulk show/hide them later on
+        ############
         D_Yloc = D_Yloc+D_dY
-        self.Label_Halftone_DPI = Label(raster_settings, text="Halftone Resolution", anchor=CENTER)
-        self.Halftone_DPI_OptionMenu = OptionMenu(raster_settings, self.ht_size, "1000", "500", "333", "250", "200", "167", "143", "125")
-        self.Label_Halftone_DPI.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
-        self.Halftone_DPI_OptionMenu.place(x=xd_entry_L, y=D_Yloc, width=w_entry+30, height=23)
+        group = LabelFrame(self.raster_settings, name="group", borderwidth=0, relief="flat")
+        group.place(x=0, y=D_Yloc, width=Wset-280-20, height=200)
+        #group.pack(padx=10)
 
+        ############
+        D_Yloc = 0 #D_Yloc+D_dY
+        label_Halftone_DPI = Label(group, name="label_Halftone_DPI", text="Halftone Resolution", anchor=CENTER)
+        label_Halftone_DPI.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        halftone_DPI_OptionMenu = OptionMenu(group, self.ht_size, "1000", "500", "333", "250", "200", "167", "143", "125")
+        halftone_DPI_OptionMenu.place(x=xd_entry_L, y=D_Yloc, width=w_entry+30, height=23)
 
-        self.Label_Halftone_u = Label(raster_settings, text="dpi", anchor=W)
-        self.Label_Halftone_u.place(x=xd_units_L+30, y=D_Yloc, width=w_units, height=21)
+        label_Halftone_u = Label(group, name="label_Halftone_u", text="dpi", anchor=W)
+        label_Halftone_u.place(x=xd_units_L+30, y=D_Yloc, width=w_units, height=21)
 
         #D_Yloc=D_Yloc+D_dY+5
         #self.Label_bezier_weight.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
@@ -470,34 +478,34 @@ class Settings(object):
 
         ############
         D_Yloc = D_Yloc+D_dY+5
-        self.Label_bezier_M1 = Label(raster_settings, text="Slope, Black (%.1f)"%(self.bezier_M1_default), anchor=CENTER)
-        self.bezier_M1_Slider = Scale(raster_settings, from_=1, to=50, resolution=0.1, orient=HORIZONTAL, variable=self.bezier_M1)
-        self.bezier_M1_Slider.place(x=xd_entry_L, y=D_Yloc, width=(Wset-xd_entry_L-25-280))
+        label_bezier_M1 = Label(group, name="label_bezier_M1", text="Slope, Black (%.1f)"%(self.bezier_M1_default), anchor=CENTER)
+        bezier_M1_Slider = Scale(group, name="bezier_M1_Slider", from_=1, to=50, resolution=0.1, orient=HORIZONTAL, variable=self.bezier_M1)
+        bezier_M1_Slider.place(x=xd_entry_L, y=D_Yloc, width=(Wset-xd_entry_L-25-280))
         D_Yloc = D_Yloc+21
-        self.Label_bezier_M1.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        label_bezier_M1.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
         self.bezier_M1.trace_variable("w", self.bezier_M1_Callback)
 
         D_Yloc = D_Yloc+D_dY-8
-        self.Label_bezier_M2 = Label(raster_settings, text="Slope, White (%.2f)"%(self.bezier_M2_default), anchor=CENTER)
-        self.bezier_M2_Slider = Scale(raster_settings, from_=0.0, to=1, orient=HORIZONTAL, resolution=0.01, variable=self.bezier_M2)
-        self.bezier_M2_Slider.place(x=xd_entry_L, y=D_Yloc, width=(Wset-xd_entry_L-25-280))
+        label_bezier_M2 = Label(group, name="label_bezier_M2", text="Slope, White (%.2f)"%(self.bezier_M2_default), anchor=CENTER)
+        bezier_M2_Slider = Scale(group, name="bezier_M2_Slider", from_=0.0, to=1, orient=HORIZONTAL, resolution=0.01, variable=self.bezier_M2)
+        bezier_M2_Slider.place(x=xd_entry_L, y=D_Yloc, width=(Wset-xd_entry_L-25-280))
         D_Yloc = D_Yloc+21
-        self.Label_bezier_M2.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        label_bezier_M2.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
         self.bezier_M2.trace_variable("w", self.bezier_M2_Callback)
 
         D_Yloc = D_Yloc+D_dY-8
-        self.Label_bezier_weight = Label(raster_settings, text="Transition (%.1f)"%(self.bezier_M1_default), anchor=CENTER)
-        self.bezier_weight_Slider = Scale(raster_settings, from_=0, to=10, resolution=0.1, orient=HORIZONTAL, variable=self.bezier_weight)
-        self.bezier_weight_Slider.place(x=xd_entry_L, y=D_Yloc, width=(Wset-xd_entry_L-25-280))
+        label_bezier_weight = Label(group, name="label_bezier_weight", text="Transition (%.1f)"%(self.bezier_M1_default), anchor=CENTER)
+        bezier_weight_Slider = Scale(group, name="bezier_weight_Slider", from_=0, to=10, resolution=0.1, orient=HORIZONTAL, variable=self.bezier_weight)
+        bezier_weight_Slider.place(x=xd_entry_L, y=D_Yloc, width=(Wset-xd_entry_L-25-280))
         D_Yloc = D_Yloc+21
-        self.Label_bezier_weight.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
+        label_bezier_weight.place(x=xd_label_L, y=D_Yloc, width=w_label, height=21)
         self.bezier_weight.trace_variable("w", self.bezier_weight_Callback)
 
 
         # Bezier Canvas
-        self.Bezier_frame = Frame(raster_settings, bd=1, relief=SUNKEN)
-        self.Bezier_frame.place(x=Wset-280, y=10, height=265, width=265)
-        self.BezierCanvas = Canvas(self.Bezier_frame, background="white")
+        Bezier_frame = Frame(self.raster_settings, bd=1, relief=SUNKEN)
+        Bezier_frame.place(x=Wset-280, y=10, height=265, width=265)
+        self.BezierCanvas = Canvas(Bezier_frame, background="white")
         self.BezierCanvas.pack(side=LEFT, fill=BOTH, expand=1)
         self.BezierCanvas.create_line(5, 260-0, 260, 260-255, fill="grey", capstyle="round", width=2, tags='perm')
 
@@ -510,26 +518,18 @@ class Settings(object):
             self.BezierCanvas.create_line(5+x[i], 260-y[i], 5+x[i+1], 260-y[i+1], fill="lightgrey", stipple='gray25', capstyle="round", width=2, tags='perm')
 
         ## Buttons ##
-        raster_settings.update_idletasks()
-        Ybut = int(raster_settings.winfo_height())-30
-        Xbut = int(raster_settings.winfo_width()/2)
+        self.raster_settings.update_idletasks()
+        Ybut = int(self.raster_settings.winfo_height())-30
+        Xbut = int(self.raster_settings.winfo_width()/2)
 
-        self.RASTER_Close = Button(raster_settings, text="Close", command=self.__close_window__)
-        self.RASTER_Close.place(x=Xbut, y=Ybut, width=130, height=30, anchor="center")
+        RASTER_Close = Button(self.raster_settings, text="Close", command=self.__close_window__)
+        RASTER_Close.place(x=Xbut, y=Ybut, width=130, height=30, anchor="center")
 
         self.bezier_M1_Callback()
         self.Set_Input_States_RASTER()
 
-
-
-    def get_raster_step_1000in(self):
-        val_in = float(self.rast_step.get())
-        value = int(round(val_in*1000.0, 1))
-        return value
-
     ##########################################################################
     # Menu Events
-    # TODO: make all those private __
     ##########################################################################
     def Write_Config_File(self, event):
         config_file = "k40_whisperer.txt"
@@ -576,106 +576,73 @@ class Settings(object):
     #############################
     def menu_View_Refresh_Callback(self, varName, index, mode):
         pass
-
-    #############################
     def Entry_px2mm_Check(self):
-        try:
-            value = float(self.px2mm.get())
-            if  value <= 0.0:
-                message_status_bar(" px to mm should be greater than 0 ", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-    def Entry_px2mm_Callback(self, varName, index, mode):
-        self.entry_set(self.Entry_px2mm, self.Entry_px2mm_Check(), new=1)
-
-    #############################
+        return self.entry_check_var_float_greater_than_0(self.px2mm, "px to mm")
     def Entry_Timeout_Check(self):
-        try:
-            value = float(self.t_timeout.get())
-            if  value <= 0.0:
-                message_status_bar(" Timeout should be greater than 0 ", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-
-    def Entry_Timeout_Callback(self, varName, index, mode):
-        self.entry_set(self.Entry_Timeout, self.Entry_Timeout_Check(), new=1)
-
-    #############################
+        return self.entry_check_var_float_greater_than_0(self.t_timeout, "Timeout")
     def Entry_N_Timeouts_Check(self):
-        try:
-            value = float(self.n_timeouts.get())
-            if  value <= 0.0:
-                message_status_bar(" N_Timeouts should be greater than 0 ")
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-    def Entry_N_Timeouts_Callback(self, varName, index, mode):
-        self.entry_set(self.Entry_N_Timeouts, self.Entry_N_Timeouts_Check(), new=1)
-
-    #############################
+        return self.entry_check_var_float_greater_than_0(self.n_timeouts, "N_Timeouts")
     def Entry_Laser_Area_Width_Check(self):
-        try:
-            value = float(self.LaserXsize.get())
-            if  value <= 0.0:
-                message_status_bar(" Width should be greater than 0 ", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-
-    def Entry_Laser_Area_Width_Callback(self, varName, index, mode):
-        self.entry_set(self.Entry_Laser_Area_Width, self.Entry_Laser_Area_Width_Check(), new=1)
-
-    #############################
+        return self.entry_check_var_float_greater_than_0(self.LaserXsize, "Width")
     def Entry_Laser_Area_Height_Check(self):
-        try:
-            value = float(self.LaserYsize.get())
-            if  value <= 0.0:
-                message_status_bar(" Height should be greater than 0 ")
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-    def Entry_Laser_Area_Height_Callback(self, varName, index, mode):
-        self.entry_set(self.Entry_Laser_Area_Height, self.Entry_Laser_Area_Height_Check(), new=1)
-
-    #############################
+        return self.entry_check_var_float_greater_than_0(self.LaserYsize, "Height")
     def Entry_Rstep_Check(self):
-        try:
-            value = self.get_raster_step_1000in()
-            if  value <= 0 or value > 63:
-                message_status_bar(" Step should be between 0.001 and 0.063 in", 'red')
-                return 2 # Value is invalid number
-        except:
-            return 3     # Value not a number
-        return 0         # Value is a valid number
-    def Entry_Rstep_Callback(self, varName, index, mode):
-        self.entry_set(self.Entry_Rstep, self.Entry_Rstep_Check(), new=1)
-
+        return self.entry_check_number_limits(self.get_raster_step_1000in(), "Step", limit1=0.0, expr1=">=", limit2="63", expr2="<=")
     def Halftone_Callback(self, varName, index, mode):
         # TODO: verify this is not needed (SCALE=0)
         #self.SCALE = 0
         pass
-
     def bezier_weight_Callback(self, varName=None, index=None, mode=None):
         self.bezier_plot()
-
     def bezier_M1_Callback(self, varName=None, index=None, mode=None):
         self.bezier_plot()
-
     def bezier_M2_Callback(self, varName=None, index=None, mode=None):
         self.bezier_plot()
+    #############################
 
 
     ##########################################################################
     # Helper functions
-    # TODO: make all those private __
     ##########################################################################
+    __expr_to_str__ = {
+        "<" : " should be less than ",
+        "<=" : " should be less than or equal to ",
+        ">" : " should be greater than ",
+        ">=" : " should be greater than or equal to ",
+        "==" : " should be equal to ",
+        "!=" : " should be not equal to "
+    }
+
+    def entry_check_number_limits(self, val, friendly_name, limit1=0.0, expr1=">", limit2=sys.maxint, expr2="<"):
+        try:
+            #ast.literal_eval?
+            if eval(str(val) + " " + expr1 + " " + str(limit1)) is False:
+                message_status_bar(" " + friendly_name + self.__expr_to_str__[expr1] + str(limit1) + " ", 'red')
+                return 2 # Value is invalid number
+            if eval(str(val) + " " + expr2 + " " + str(limit2)) is False:
+                message_status_bar(" " + friendly_name + self.__expr_to_str__[expr2] + str(limit2) + " ", 'red')
+                return 2 # Value is invalid number
+        except:
+            return 3     # Value not a number
+        return 0         # Value is a valid number
+
+    def entry_check_var_limits(self, var, friendly_name, valtype="float", limit1=0.0, expr1=">", limit2=sys.maxint, expr2="<"):
+        try:
+            val = eval(valtype+'('+var.get()+')')
+            return self.entry_check_number_limits(val, friendly_name, limit1, expr1, limit2, expr2)
+        except:
+            return 3     # Value not a number
+        return 0         # Value is a valid number
+
+    def entry_check_var_float_greater_than_0(self, var, var_friendly_name):
+        return self.entry_check_var_limits(var, var_friendly_name, valtype="float", limit1=0.0, expr1=">")
+
+    #def entry_check_var_float_between_min_max(self, var, var_friendly_name, minval, maxval):
+    #    return self.entry_check_var_limits(var, var_friendly_name, valtype="float", limit1=minval, expr1=">=", limit2=maxval, expr2="<=")
+
+    def entry_callback(self, uielement, check_function, varName, index, mode):
+        return self.entry_set(uielement, check_function(), new=1)
+
     def entry_set(self, val2, calc_flag=0, new=0):
         if calc_flag == 0 and new == 0:
             try:
@@ -714,7 +681,7 @@ class Settings(object):
     def bezier_plot(self):
         if self.BezierCanvas.winfo_exists() == 0:
             return
-        
+
         self.BezierCanvas.delete('bez')
 
         #self.BezierCanvas.create_line( 5,260-0,260,260-255,fill="black", capstyle="round", width = 2, tags='bez')
@@ -726,6 +693,11 @@ class Settings(object):
         for i in range(0, num):
             self.BezierCanvas.create_line(5+x[i], 260-y[i], 5+x[i+1], 260-y[i+1], fill="black", capstyle="round", width=2, tags='bez')
         self.BezierCanvas.create_text(128, 0, text="Output Level vs. Input Level", anchor="n", tags='bez')
+
+    def get_raster_step_1000in(self):
+        val_in = float(self.rast_step.get())
+        value = int(round(val_in*1000.0, 1))
+        return value
 
     def generate_bezier(self, M1, M2, w, n=100):
         if M1 == M2:
@@ -758,25 +730,16 @@ class Settings(object):
 
     def Set_Input_States_RASTER(self):
         if self.halftone.get():
-            self.Label_Halftone_DPI.configure(state="normal")
-            self.Halftone_DPI_OptionMenu.configure(state="normal")
-            self.Label_Halftone_u.configure(state="normal")
-            self.Label_bezier_M1.configure(state="normal")
-            self.bezier_M1_Slider.configure(state="normal")
-            self.Label_bezier_M2.configure(state="normal")
-            self.bezier_M2_Slider.configure(state="normal")
-            self.Label_bezier_weight.configure(state="normal")
-            self.bezier_weight_Slider.configure(state="normal")
+            newstate = "normal"
         else:
-            self.Label_Halftone_DPI.configure(state="disabled")
-            self.Halftone_DPI_OptionMenu.configure(state="disabled")
-            self.Label_Halftone_u.configure(state="disabled")
-            self.Label_bezier_M1.configure(state="disabled")
-            self.bezier_M1_Slider.configure(state="disabled")
-            self.Label_bezier_M2.configure(state="disabled")
-            self.bezier_M2_Slider.configure(state="disabled")
-            self.Label_bezier_weight.configure(state="disabled")
-            self.bezier_weight_Slider.configure(state="disabled")
+            newstate = "disabled"
+
+        group = self.raster_settings.nametowidget("group")
+        for c in group.winfo_children():
+            try:
+                c.configure(state=newstate)
+            except:
+                pass
 
     # def Set_Input_States_RASTER_Event(self, event):
     #     self.Set_Input_States_RASTER()

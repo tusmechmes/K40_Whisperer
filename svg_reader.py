@@ -40,15 +40,15 @@ except:
 
 ## Subprocess timout stuff ######
 from threading import Timer
-def run_external(cmd, timeout_sec):
-  proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
-  kill_proc = lambda p: p.kill()
-  timer = Timer(timeout_sec, kill_proc, [proc])
-  try:
-    timer.start()
-    stdout,stderr = proc.communicate()
-  finally:
-    timer.cancel()
+def run_external(cmd, timeout_sec): 
+    proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    kill_proc = lambda p: p.kill()
+    timer = Timer(timeout_sec, kill_proc, [proc])
+    try:
+        timer.start()
+        stdout,stderr = proc.communicate()
+    finally:
+        timer.cancel()
 ##################################
 
 class SVG_TEXT_EXCEPTION(Exception):

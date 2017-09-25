@@ -20,13 +20,13 @@
 # pylint: disable=invalid-name
 # pylint: disable=missing-docstring
 # pylint: disable=bare-except
+# pylint: disable=no-self-use
 # pylint: disable=unused-argument
 # pylint: disable=unused-wildcard-import
 # pylint: disable=wildcard-import
 # pylint: disable=too-many-instance-attributes
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-arguments
-# pylint: disable=no-self-use
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-public-methods
 # TODO: too-many-branches

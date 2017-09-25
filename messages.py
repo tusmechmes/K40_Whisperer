@@ -105,3 +105,4 @@ def message_status_bar(text, bkcolor='white'):
     """ Display a message on the status bar """
     set_master_window.statusMessage.set(text)
     set_master_window.statusbar.configure(bg=bkcolor)
+    set_master_window.app.master.update()

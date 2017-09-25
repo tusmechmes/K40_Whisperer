@@ -129,7 +129,6 @@ class Application(Frame):
 
         # Status Bar
         set_master_window(self)
-        message_status_bar("Welcome to K40 Whisperer")
 
         # Canvas
         lbframe = Frame(self.master)
@@ -321,6 +320,7 @@ class Application(Frame):
 ##                sys.exit()
 ##            if option in ('-o','--other_option'):
 ##                pass
+        message_status_bar("Welcome to K40 Whisperer")
 
     ##########################################################################
     # Menu Events
@@ -612,7 +612,6 @@ class Application(Frame):
                 svg_reader.make_paths()
             except SVG_TEXT_EXCEPTION as e:
                 message_status_bar("Converting TEXT to PATHS.")
-                self.master.update()
                 svg_reader.parse(self.SVG_FILE)
                 svg_reader.make_paths(txt2paths=True)
                 
@@ -693,7 +692,6 @@ class Application(Frame):
         
     #     for y in range(1, y_lim):
     #         message_status_bar("Converting to greyscale: %.1f %%" %( (100.0*y)/y_lim ) )
-    #         self.master.update()
     #         for x in range(1, x_lim):
     #             value = pixel[x, y]
     #             grey_pixel[x,y] = int( value[0]*.333 + value[1]*.333 +value[2]*.333 )
@@ -734,8 +732,8 @@ class Application(Frame):
 
                 Raster_step = self.settings.get_raster_step_1000in()
                 for i in range(0,self.him,Raster_step):
-                    message_status_bar("Raster Engraving: Creating Scan Lines: %.1f %%" %( (100.0*i)/self.him ) )
-                    self.master.update()
+                    if i%10 == 0:
+                        message_status_bar("Raster Engraving: Creating Scan Lines: %.1f %%" %( (100.0*i)/self.him ) )
                     if self.stop[0]==True:
                         raise StandardError("Action stopped by User.")
                     line = []
@@ -763,8 +761,9 @@ class Application(Frame):
                             ecoords.append([x+delta,y,loop])
                         x = x + delta
                         
-            if ecoords!=[]:
-                self.Reng = ecoords
+            self.Reng = ecoords
+            if ecoords == []:
+                raise UserWarning('failed to generate ecoords for given raster image')
     #######################################################################
 
     '''This Example opens an Image and transform the image into halftone.  -Isai B. Cicourel'''
@@ -790,12 +789,10 @@ class Application(Frame):
             # Adjust image
             for y in range(1, y_lim):
                 message_status_bar("Raster Engraving: Adjusting Image Darkness: %.1f %%" %( (100.0*y)/y_lim ) )
-                self.master.update()
                 for x in range(1, x_lim):
                     pixel[x, y] = val_map[ pixel[x, y] ]
 
         message_status_bar("Raster Engraving: Creating Halftone Image." )
-        self.master.update()
         image = image.convert('1')
      
         # image.save("Z:\\000.png","PNG")
@@ -803,7 +800,6 @@ class Application(Frame):
         # junk.save("Z:\\001.png","PNG")   
         # for y in range(1, y_lim):
         #     message_status_bar("Raster Engraving: Creating Halftone Image: %.1f %%" %( (100.0*y)/y_lim ) )
-        #     self.master.update()
         #     if self.stop[0]==True:
         #         raise StandardError("Action stopped by User.")
                    
@@ -1070,9 +1066,8 @@ class Application(Frame):
         self.menu_View_Refresh()
 
     def update_gui(self, message=None):
-        if message!=None:
+        if message != None:
             message_status_bar(message)   
-        self.master.update()
 
     def set_gui(self,new_state="normal"):
         self.menuBar.entryconfigure("File"    , state=new_state)
@@ -1089,15 +1084,12 @@ class Application(Frame):
             except:
                 pass
         self.Stop_Button.configure(state="normal")
-        message_status_bar(" ")
-        self.master.update()
-    
+        message_status_bar(" ")    
 
     def Vector_Cut(self):
         self.stop[0]=False
         self.set_gui("disabled")
         message_status_bar("Vector Cut: Processing Vector Data.", 'green')
-        self.master.update()
         if self.Vcut!=[]:
             self.send_data("Vector_Cut")
         else:
@@ -1108,7 +1100,6 @@ class Application(Frame):
         self.stop[0]=False
         self.set_gui("disabled")
         message_status_bar("Vector Engrave: Processing Vector Data.", 'green')
-        self.master.update()
         if self.Veng!=[]:
             self.send_data("Vector_Eng")
         else:
@@ -1119,20 +1110,20 @@ class Application(Frame):
         self.stop[0]=False
         self.set_gui("disabled")
         message_status_bar("Raster Engraving: Processing Image Data.", 'green')
-        self.master.update()
         try:
             self.make_raster_coords()
-            if self.Reng!=[]:
-                Raster_step = self.settings.get_raster_step_1000in()
-                self.send_data("Raster_Eng",Raster_step=Raster_step)
+            if self.Reng != []:
+                self.send_data("Raster_Eng")
+                self.Reng = []    # clear engraving coords
             else:
                 message_status_bar("No raster data to engrave", 'yellow')
-        except StandardError as e:
+        except (StandardError, UserWarning) as e:
             msg1 = "Making Raster Data Stopped: "
             msg2 = "%s" %(e)
             message_status_bar((msg1+msg2).split("\n")[0], 'red')
             message_box(msg1, msg2)
             debug_message(traceback.format_exc())
+            
         self.set_gui("normal")
 
     ################################################################################
@@ -1277,7 +1268,6 @@ class Application(Frame):
 ##            CUR_PCT=float(iloop)/Nloops*100.0
 ##            if (not self.batch.get()):
 ##                message_status_bar('Determining Which Side of Loop to Cut: %d of %d' %(iloop+1,Nloops))
-##                self.master.update()
             ipoly = cuts[iloop]
             ## Check points in other loops (could just check one) ##
             if ipoly != []:
@@ -1328,9 +1318,9 @@ class Application(Frame):
                 self.order.append(self.loops[i])
                 self.loops[i]=[]
   
-    def send_data(self,operation_type=None,Raster_step=0):
+    def send_data(self, operation_type=None):
         try:
-            if self.settings.units.get()=='in':
+            if self.settings.units.get() == 'in':
                 feed_factor = 25.4/60.0
             else:
                 feed_factor = 1.0
@@ -1342,75 +1332,44 @@ class Application(Frame):
             else:
                 FlipXoffset = 0
             
-            data=[]
-            egv_inst = egv(target=lambda s:data.append(s))
+            egv_data = []
+            egv_inst = egv(target=lambda s:egv_data.append(s))
             
-            if (operation_type=="Vector_Cut") and  (self.Vcut!=[]):
-                Feed_Rate = float(self.settings.Vcut_feed.get())*feed_factor
+            # optimize paths and determin the ecoordinates to use
+            ecoords = []
+            raster_step = 0
+            if (operation_type == "Vector_Cut") and (self.Vcut != []):
+                feed_Rate = float(self.settings.Vcut_feed.get()) * feed_factor
                 message_status_bar("Vector Cut: Determining Cut Order....")
-                self.master.update()
                 self.Vcut = self.optimize_paths(self.Vcut)
-                message_status_bar("Generating EGV data...")
-                self.master.update()
-                
-                egv_inst.make_egv_data(
-                                                self.Vcut,                                  \
-                                                startX=xmin,                                \
-                                                startY=ymax,                                \
-                                                Feed = Feed_Rate,                           \
-                                                board_name=self.settings.board_name.get(),  \
-                                                Raster_step = 0,                            \
-                                                update_gui=self.update_gui,                 \
-                                                stop_calc=self.stop,                        \
-                                                FlipXoffset=FlipXoffset
-                                                )
+                ecoords = self.Vcut
 
-            if (operation_type=="Vector_Eng") and  (self.Veng!=[]):
-                Feed_Rate = float(self.settings.Veng_feed.get())*feed_factor
+            if (operation_type == "Vector_Eng") and (self.Veng != []):
+                feed_Rate = float(self.settings.Veng_feed.get()) * feed_factor
                 message_status_bar("Vector Engrave: Determining Cut Order....")
-                self.master.update()
                 self.Veng = self.optimize_paths(self.Veng)
-                message_status_bar("Generating EGV data...")
-                self.master.update()
-                egv_inst.make_egv_data(
-                                                self.Veng,                                  \
-                                                startX=xmin,                                \
-                                                startY=ymax,                                \
-                                                Feed = Feed_Rate,                           \
-                                                board_name=self.settings.board_name.get(),  \
-                                                Raster_step = 0,                            \
-                                                update_gui=self.update_gui,                 \
-                                                stop_calc=self.stop,                        \
-                                                FlipXoffset=FlipXoffset
-                                                )
+                ecoords = self.Veng
 
-            if (operation_type=="Raster_Eng") and  (self.Reng!=[]):
-                Feed_Rate = float(self.settings.Reng_feed.get())*feed_factor
-                message_status_bar("Generating EGV data...")
-                self.master.update()
-                egv_inst.make_egv_data(
-                                                self.Reng,                                  \
-                                                startX=xmin,                                \
-                                                startY=ymax,                                \
-                                                Feed = Feed_Rate,                           \
-                                                board_name=self.settings.board_name.get(),  \
-                                                Raster_step = Raster_step,                  \
-                                                update_gui=self.update_gui,                 \
-                                                stop_calc=self.stop,                        \
-                                                FlipXoffset=FlipXoffset
-                                                )
-                
-                self.Reng=[]
-                
+            if (operation_type == "Raster_Eng") and (self.Reng != []):
+                feed_Rate = float(self.settings.Reng_feed.get()) * feed_factor
+                ecoords = self.Reng
+                raster_step = self.settings.get_raster_step_1000in()
+
+            # generate EGV data
+            message_status_bar("Generating EGV data...")
+            egv_inst.make_egv_data(ecoords, startX=xmin, startY=ymax, Feed=feed_Rate, board_name=self.settings.board_name.get(), \
+                                   Raster_step=0, update_gui=self.update_gui, stop_calc=self.stop, FlipXoffset=FlipXoffset)
             self.master.update()
             
             # message_status_bar("Saving Data to File....")
-            # self.write_egv_to_file(data)
+            # self.write_egv_to_file(egv_data)
             # message_status_bar("Done Saving Data to File....")
             # self.set_gui("normal")
 
-            self.send_egv_data(data)
+            # send data to device
+            self.send_egv_data(egv_data)
             self.menu_View_Refresh()
+
         except MemoryError as e:
             raise StandardError("Memory Error:  Out of Memory.")
             debug_message(traceback.format_exc())

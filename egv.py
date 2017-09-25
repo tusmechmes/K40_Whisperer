@@ -59,7 +59,6 @@ class egv(object):
         self.ON    = 68 #ord("D")=68
         self.OFF   = 85 #ord("U")=85
 
-
         # % Yxtart % Xstart % Yend % Xend % I % C VXXXXXXX CUT_TYPE R YYY B XXX
 
         # %Ystart_pos %Xstart_pos %Yend_pos %Xend_pos  (start pos is the location of the head before the code is run)
@@ -128,7 +127,7 @@ class egv(object):
     def OneWireCRC(self,line):
         crc = 0
         for i in range(len(line)):
-            inbyte=line[i]
+            inbyte = line[i]
             for _ in range(8):
                 mix = (crc ^ inbyte) & 0x01
                 crc >>= 1
@@ -363,7 +362,7 @@ class egv(object):
             self.write(ord("N"))
             self.write(ord("R"))
             self.write(ord("B"))
-            # Insert "SIE"
+            # Insert "S1E"
             self.write(ord("S"))
             self.write(ord("1"))
             self.write(ord("E"))
@@ -453,7 +452,8 @@ class egv(object):
                     #print point
                     e0,e1,e2 = self.ecoord_adj(point,scale,FlipXoffset)
                     scan.append([e0,e1,e2])
-                update_gui("Generating EGV Data: %.1f%%" %(100.0*float(cnt)/float(len(scanline))))
+                if (cnt % 1000 == 0):
+                    update_gui("Generating EGV Data: %.1f%%" %(100.0*float(cnt)/float(len(scanline))))
                 if stop_calc[0]:
                     raise StandardError("Action Stopped by User.")
                 cnt = cnt+1

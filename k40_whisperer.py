@@ -1404,12 +1404,12 @@ class Application(Frame):
                 
             self.master.update()
             
-            message_status_bar("Saving Data to File....")
-            self.write_egv_to_file(data)
-            message_status_bar("Done Saving Data to File....")
-            self.set_gui("normal")
+            # message_status_bar("Saving Data to File....")
+            # self.write_egv_to_file(data)
+            # message_status_bar("Done Saving Data to File....")
+            # self.set_gui("normal")
 
-            #self.send_egv_data(data)
+            self.send_egv_data(data)
             self.menu_View_Refresh()
         except MemoryError as e:
             raise StandardError("Memory Error:  Out of Memory.")

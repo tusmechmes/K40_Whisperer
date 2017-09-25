@@ -135,7 +135,7 @@ class egv(object):
                 if (mix):
                     crc ^= 0x8C
                 inbyte >>= 1
-        return crcS
+        return crc
 
     def make_distance(self, dist_mils):
         dist_mils = float(dist_mils)

@@ -39,6 +39,9 @@ from egv import egv
 ##############################################################################
 
 class K40_CLASS(object):
+    USB_DEVICE_VENDOR_ID  = 0x1a86
+    USB_DEVICE_PRODUCT_ID = 0x5512
+
     def __init__(self):
         self.dev         = None
         self.n_timeouts  = 10
@@ -172,7 +175,7 @@ class K40_CLASS(object):
         except:
             pass
         # find the device
-        self.dev = usb.core.find(idVendor=0x1a86, idProduct=0x5512)
+        self.dev = usb.core.find(idVendor=K40_CLASS.USB_DEVICE_VENDOR_ID, idProduct=K40_CLASS.USB_DEVICE_PRODUCT_ID)
         if self.dev is None:
             raise StandardError("Laser USB Device not found.")
             #return "Laser USB Device not found."

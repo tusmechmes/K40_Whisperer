@@ -1346,7 +1346,7 @@ class Application(Frame):
             egv_inst = egv(target=lambda s:data.append(s))
             
             if (operation_type=="Vector_Cut") and  (self.Vcut!=[]):
-                Feed_Rate = float(self.Vcut_feed.get())*feed_factor
+                Feed_Rate = float(self.settings.Vcut_feed.get())*feed_factor
                 message_status_bar("Vector Cut: Determining Cut Order....")
                 self.master.update()
                 self.Vcut = self.optimize_paths(self.Vcut)
@@ -1366,7 +1366,7 @@ class Application(Frame):
                                                 )
 
             if (operation_type=="Vector_Eng") and  (self.Veng!=[]):
-                Feed_Rate = float(self.Veng_feed.get())*feed_factor
+                Feed_Rate = float(self.settings.Veng_feed.get())*feed_factor
                 message_status_bar("Vector Engrave: Determining Cut Order....")
                 self.master.update()
                 self.Veng = self.optimize_paths(self.Veng)
@@ -1403,7 +1403,13 @@ class Application(Frame):
                 self.Reng=[]
                 
             self.master.update()
-            self.send_egv_data(data)
+            
+            message_status_bar("Saving Data to File....")
+            self.write_egv_to_file(data)
+            message_status_bar("Done Saving Data to File....")
+            self.set_gui("normal")
+
+            #self.send_egv_data(data)
             self.menu_View_Refresh()
         except MemoryError as e:
             raise StandardError("Memory Error:  Out of Memory.")
@@ -1430,11 +1436,7 @@ class Application(Frame):
             self.k40.send_data(data, self.update_gui, self.stop)
             self.k40 = None
             self.master.update()
-            
-        #message_status_bar("Saving Data to File....")
-        #self.write_egv_to_file(data)
-        #message_status_bar("Done Saving Data to File....")
-        #self.set_gui("normal")
+
         self.menu_View_Refresh()
         
     ##########################################################################

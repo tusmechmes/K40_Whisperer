@@ -19,10 +19,17 @@
 # pylint: disable=line-too-long
 # pylint: disable=invalid-name
 # pylint: disable=missing-docstring
-# pylint: disable=W0702
-# pylint: disable=W0613
-# pylint: disable=W0614
-# pylint: disable=W0401
+# pylint: disable=bare-except
+# pylint: disable=unused-argument
+# pylint: disable=unused-wildcard-import
+# pylint: disable=wildcard-import
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-statements
+# pylint: disable=too-many-arguments
+# pylint: disable=no-self-use
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-public-methods
+# TODO: too-many-branches
 
 import os
 from globals import *
@@ -609,11 +616,11 @@ class Settings(object):
     def Entry_GoToX_Check(self):
         if self.HomeUR.get():
             return self.entry_check_var_limits(self.gotoX, "Value", valtype="float", limit1=0.0, expr1="<=")
-        else:
-            return self.entry_check_var_limits(self.gotoX, "Value", valtype="float", limit1=0.0, expr1=">=")
+        #else:
+        return self.entry_check_var_limits(self.gotoX, "Value", valtype="float", limit1=0.0, expr1=">=")
     def Entry_GoToY_Check(self):
         return self.entry_check_var_limits(self.gotoY, "Value", valtype="float", limit1=0.0, expr1="<=")
- 
+
     ##########################################################################
 
 

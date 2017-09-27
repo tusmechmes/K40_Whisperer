@@ -64,6 +64,13 @@ class K40_CLASS(object):
         self.dev.write(self.write_addr, array, self.timeout)
         self.read_data()
 
+    def send_chars(self, chars):
+        arr = []
+        for c in chars:
+            if c != "\n" and c != " ":
+                arr.append(ord(c))
+        self.send_data(arr)
+
     def unlock_rail(self):
         self.dev.write(self.write_addr, self.unlock, self.timeout)
         return self.say_hello()
@@ -312,4 +319,47 @@ if __name__ == "__main__":
     print (k40.say_hello())
     #print k40.reset_position()
     #print k40.unlock_rail()
+
+    k40.send_array(k40.home)
+    # k40.send_chars("ICV1952331000000000")
+    # k40.send_chars("NRBS1E")
+    # k40.send_chars("DBRMz139UTcLcT")
+    # k40.send_chars("NL|kBcSE")
+    # k40.send_chars("NL|lBcSE")
+    # k40.send_chars("FNSE")
+    # beginning of 2 boxes
+
+    # I = INITIALIZE
+    # F = 
+    # N = 
+    # S = 
+    # E = 
+    # B = RIGHT
+    # T = LEFT
+    # L = UP
+    # R = DOWN
+    # M = ANGLE
+    # D = LASER ON
+    # U = LASER OFF
+    # V = SPEED SET
+    # C = COFRASE? for "fast" speeds / non raster
+
+    k40.send_chars("ICV1952331000000000 NRBS1E D BR Mz139U TcLc TN L|k Bc SE F NSE")
+
+    # one line right 100
+    #               I speed             header on R394  off L3 U3  R ? D3 L391  ?  END
+    k40.send_chars("ICV1151911000000000 NRBS1E D  Bz139 U   Tc Lc  B N Rc Tz136 SE FNSE")
+
+    # 2 lines: right100 then down100
+    #               I speed             header on R394  D394  off L3 U3 R ? U391  L391  ?  END
+    k40.send_chars("ICV1151911000000000 NRBS1E D  Bz139 Rz139 U   Tc Lc B N Lz136 Tz136 SE FNSE")
+
+    # 2 lines: right100 @ pow100, down100 @ pow255
+    #
+    k40.send_chars("ICV1952331000000000 NRBS1E D CV1151911000000000 Bz139 Rz139 UTcLcB NLz136Tz136SE FNSE")
+    k40.send_chars("ICV1952331000000000 NRBS1E D Bz139 CV1151911000000000 Rz139 UTcLcB NLz136Tz136SE FNSE")
+
+    # 4 lines: right100@100, down100@255, gap, left~98@100, gap, diag120@150
+    k40.send_chars("ICV1952331000000000 NRBS1E D Bz139 CV1151911000000000 Rz139 CV1952331000000000UTcLcB NRcTmSE DTz123 CV1872291000000000UTcLcT NLhBcSE DMoBaM|dBaM|dBaM|eBaM|dBaM|dBaM|eBaM|dBaM|dBaM|dBaM|eBaM|dBaM|dBaMoUTcLcB NRaTz136SE FNSE")
+
     print ("DONE")

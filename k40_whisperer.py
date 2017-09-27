@@ -38,6 +38,9 @@ import traceback
 
 from messages import *
 
+# TODO: before check in: cmake sure this is set to True
+FIRE_LASER = True
+
 LOAD_MSG = ""
 
 if VERSION < 3 and sys.version_info[1] < 6:
@@ -665,6 +668,7 @@ class Application(Frame):
             y1 = XY[1]*scale
             x2 = XY[2]*scale
             y2 = XY[3]*scale
+            depth = XY[4]
             dx = oldx - x1
             dy = oldy - y1
             dist = sqrt(dx*dx + dy*dy)
@@ -672,8 +676,8 @@ class Application(Frame):
             if (dist > Acc) or first_stroke:
                 loop = loop+1
                 first_stroke = False
-                ecoords.append([x1,y1,loop])
-            ecoords.append([x2,y2,loop])
+                ecoords.append([x1, y1, loop, depth])
+            ecoords.append([x2, y2, loop, depth])
             oldx, oldy = x2, y2
             xmax=max(xmax,x1,x2)
             ymax=max(ymax,y1,y2)
@@ -1225,6 +1229,7 @@ class Application(Frame):
         return inside
 
     def optimize_paths(self,ecoords):
+        # TODO: pre-sort by depth (small to large) then optimize within each depth group
         order_out = self.Sort_Paths(ecoords)
         lastx=-999
         lasty=-999
@@ -1241,20 +1246,21 @@ class Application(Frame):
             loop_old = -1
             
             for i in range(temp[0],temp[1]+step,step):
-                x1   = ecoords[i][0]
-                y1   = ecoords[i][1]
-                loop = ecoords[i][2]
+                x1    = ecoords[i][0]
+                y1    = ecoords[i][1]
+                loop  = ecoords[i][2]
+                depth = ecoords[i][3]
                 # check and see if we need to move to a new discontinuous start point
                 if (loop != loop_old):
                     dx = x1-lastx
                     dy = y1-lasty
                     dist = sqrt(dx*dx + dy*dy)
                     if dist > Acc:
-                        cuts.append([[x1,y1]])
+                        cuts.append([[x1, y1, depth]])
                     else:
-                        cuts[-1].append([x1,y1])
+                        cuts[-1].append([x1, y1, depth])
                 else:
-                    cuts[-1].append([x1,y1])
+                    cuts[-1].append([x1, y1, depth])
                 lastx = x1
                 lasty = y1
                 loop_old = loop
@@ -1296,7 +1302,9 @@ class Application(Frame):
         for i in self.order:
             line = cuts[i]
             for coord in line:
-                ecoords_out.append([coord[0],coord[1],i])
+                loop_id = i
+                depth = coord[2]
+                ecoords_out.append([coord[0], coord[1], loop_id, depth])
         return ecoords_out
             
     def remove_self_references(self,loop_numbers,loops):
@@ -1328,13 +1336,10 @@ class Application(Frame):
             xmin,xmax,ymin,ymax = self.Reng_bounds
             if self.settings.HomeUR.get():
                 xmin,xmax,ymin,ymax = self.Reng_bounds
-                FlipXoffset = xmax-xmin
+                flipXoffset = xmax-xmin
             else:
-                FlipXoffset = 0
-            
-            egv_data = []
-            egv_inst = egv(target=lambda s:egv_data.append(s))
-            
+                flipXoffset = 0
+                        
             # optimize paths and determin the ecoordinates to use
             ecoords = []
             raster_step = 0
@@ -1357,8 +1362,11 @@ class Application(Frame):
 
             # generate EGV data
             message_status_bar("Generating EGV data...")
+            egv_data = []
+            egv_inst = egv(target=lambda s:egv_data.append(s))
+            # TODO: read "use_depth_info" from settings and ignore the depth if it is not set
             egv_inst.make_egv_data(ecoords, startX=xmin, startY=ymax, Feed=feed_Rate, board_name=self.settings.board_name.get(), \
-                                   Raster_step=0, update_gui=self.update_gui, stop_calc=self.stop, FlipXoffset=FlipXoffset)
+                                   Raster_step=raster_step, update_gui=self.update_gui, stop_calc=self.stop, FlipXoffset=flipXoffset, useDepthInfo=USE_DEPTH_INFO)
             self.master.update()
             
             # message_status_bar("Saving Data to File....")
@@ -1367,7 +1375,8 @@ class Application(Frame):
             # self.set_gui("normal")
 
             # send data to device
-            self.send_egv_data(egv_data)
+            if FIRE_LASER:
+                self.send_egv_data(egv_data)
             self.menu_View_Refresh()
 
         except MemoryError as e:
@@ -1720,10 +1729,10 @@ class Application(Frame):
                 x1    = (XY[0]-xmin)*scale
                 y1    = (XY[1]-ymax)*scale
                 loop  = XY[2]
-                color = "red"
+                color = "blue"
                 # check and see if we need to move to a new discontinuous start point
                 if (loop == loop_old):
-                    self.Plot_Line(xold, yold, x1, y1, x_lft, y_top, XlineShift, YlineShift, self.PlotScale, "blue")
+                    self.Plot_Line(xold, yold, x1, y1, x_lft, y_top, XlineShift, YlineShift, self.PlotScale, color)
                 loop_old = loop
                 xold=x1
                 yold=y1
@@ -1738,12 +1747,11 @@ class Application(Frame):
                 XY    = line
                 x1    = (XY[0]-xmin)*scale
                 y1    = (XY[1]-ymax)*scale
-
                 loop  = XY[2]
-                color = "red"
+                color = "#{0:02x}{1:02x}{2:02x}".format(XY[3], 0, 0)
                 # check and see if we need to move to a new discontinuous start point
                 if (loop == loop_old):
-                    self.Plot_Line(xold, yold, x1, y1, x_lft, y_top, XlineShift, YlineShift, self.PlotScale, "red")
+                    self.Plot_Line(xold, yold, x1, y1, x_lft, y_top, XlineShift, YlineShift, self.PlotScale, color)
                 loop_old = loop
                 xold=x1
                 yold=y1

@@ -38,6 +38,7 @@ import sys
 import os
 from shutil import copyfile
 from math import *
+from globals import *
 
 ##############################################################################
 
@@ -73,7 +74,7 @@ class egv(object):
         # XXX is the position of the start of the first cut position in mm * 39.6
 
     def move(self, direction, distance, laser_on=False, angle_dirs=None):
-
+        """ {B/T/L/R}{millis}[D/U] OR {D/U}[angle:T/R] """
         if angle_dirs is None:
             angle_dirs = [self.Modal_AX, self.Modal_AY]
 
@@ -109,6 +110,7 @@ class egv(object):
                 self.Modal_AY = direction
 
     def flush(self, laser_on=None):
+        """ {B/T/L/R}{millis}[D/U] """
         if self.Modal_dist > 0:
             self.write(self.Modal_dir)
             for code in self.make_distance(self.Modal_dist):
@@ -124,19 +126,13 @@ class egv(object):
 
     #  The one wire CRC algorithm is derived from the OneWire.cpp Library
     #  The library location: http://www.pjrc.com/teensy/td_libs_OneWire.html
-    def OneWireCRC(self,line):
-        crc = 0
-        for i in range(len(line)):
-            inbyte = line[i]
-            for _ in range(8):
-                mix = (crc ^ inbyte) & 0x01
-                crc >>= 1
-                if (mix):
-                    crc ^= 0x8C
-                inbyte >>= 1
-        return crc
-
     def make_distance(self, dist_mils):
+        """ (number % 255) * 'z', remainder is represented as follows:
+            0..25:   'a'..'y'
+            26..51:  '|a'..'|z'
+            52..254: 'z###'  where # is the actual string of the remainder
+            example: 391 would be written as: 'z136'
+        """
         dist_mils = float(dist_mils)
         if abs(dist_mils-round(dist_mils,0)) > 0.000001:
             raise StandardError('Distance values should be integer value (inches*1000)')
@@ -166,6 +162,7 @@ class egv(object):
         return code
 
     def make_dir_dist(self, dxmils, dymils, laser_on=False):
+        """ {B/T/L/R}{millis} [{B/T/L/R}{millis}] """
         adx = abs(dxmils)
         ady = abs(dymils)
         if adx > 0 or ady > 0:
@@ -181,6 +178,7 @@ class egv(object):
                     self.move(self.LEFT, adx, laser_on)
 
     def make_cut_line(self, dxmils, dymils):
+        """ {B/T/L/R}{millis}[D/U] OR {D/U}[angle:T/R] """
         XCODE = self.RIGHT
         if dxmils < 0.0:
             XCODE = self.LEFT
@@ -263,6 +261,14 @@ class egv(object):
         #return cdata
 
     def make_speed(self, Feed=None, board_name="LASER-M2", Raster_step=0):
+        # make sure we don't kill the laser motors (and yes, written in blood)
+        if Raster_step == 0:
+            if Feed > MAX_FEED_VECTOR:
+                Feed = MAX_FEED_VECTOR
+        else:
+            if Feed > MAX_FEED_RASTER:
+                Feed = MAX_FEED_RASTER
+
         speed=[]
         #################################################################
         if board_name == "LASER-M2":
@@ -304,6 +310,28 @@ class egv(object):
             speed.append(ord(c))
         return speed
 
+    def make_speed_depth(self, feed=None, board_name="LASER-M2", Raster_step=0, depth=100):
+        if feed is None:
+            return self.make_speed(feed, board_name, Raster_step)
+
+        # depth should be in the range of 101 to 255 (we use 101..200 - anything above that goes to cutting speed)
+        if depth > 200:
+            #feed = feed    # we assume feed had the correct value here
+            return self.make_speed(feed, board_name, Raster_step)
+
+        # fix the minimum depth if needed
+        if depth < 100:
+            depth = 100
+
+        depth_percent = (depth - 100.0) / 100.0
+
+        max_delta_feed = MAX_FEED_VECTOR    # TODO: get from material settings
+        min_delta_feed = 0                  # TODO: get from material settings
+
+        # make the feed speed faster for shallow depths, hence the 'max_feed -' below
+        depth_feed_delta = max_delta_feed - depth_percent * (max_delta_feed - min_delta_feed)
+
+        return self.make_speed(feed + depth_feed_delta, board_name, Raster_step)
 
     def make_move_data(self, dxmils, dymils):
         if (abs(dxmils) + abs(dymils)) > 0:
@@ -319,17 +347,22 @@ class egv(object):
         #Don't delete this function (used in make_egv_data)
         pass
 
-    def ecoord_adj(self,ecoords_adj_in,scale,FlipXoffset):
+    def ecoord_adj(self, ecoords_adj_in, scale, FlipXoffset):
         if FlipXoffset > 0:
-            e0 = int(round((FlipXoffset-ecoords_adj_in[0])*scale,0))
+            e0 = int(round((FlipXoffset-ecoords_adj_in[0]) * scale, 0))
         else:
-            e0 = int(round(ecoords_adj_in[0]*scale,0))
-        e1 = int(round(ecoords_adj_in[1]*scale,0))
+            e0 = int(round(ecoords_adj_in[0] * scale, 0))
+        e1 = int(round(ecoords_adj_in[1] * scale, 0))
         e2 = ecoords_adj_in[2]
-        return e0,e1,e2
+        try:
+            depth = ecoords_adj_in[3]
+        except:
+            depth = 255
+        return e0, e1, e2, depth
 
 
-    def make_egv_data(self, ecoords_in, startX=0, startY=0, units = 'in', Feed = None, board_name="LASER-M2", Raster_step=0, update_gui=None, stop_calc=None, FlipXoffset=0):
+    def make_egv_data(self, ecoords_in, startX=0, startY=0, units='in', Feed=None, board_name="LASER-M2", \
+                      Raster_step=0, update_gui=None, stop_calc=None, FlipXoffset=0, useDepthInfo=False):
         ########################################################
         if stop_calc is None:
             stop_calc=[]
@@ -342,21 +375,25 @@ class egv(object):
         if units == 'mm':
             scale = 1000.0 / 25.4
 
-        startX = int(round(startX*scale,0))
-        startY = int(round(startY*scale,0))
+        startX = int(round(startX*scale, 0))
+        startY = int(round(startY*scale, 0))
+        depth = 255
 
         ########################################################
-        if Feed is None:
-            speed = self.make_speed(Feed,board_name=board_name)
-        else:
-            speed = self.make_speed(Feed,board_name=board_name,Raster_step=Raster_step)
-
+        # write initialize?
         self.write(ord("I"))
-        for code in speed:
-            self.write(code)
 
-        if Raster_step == 0:
-            lastx,lasty,last_loop = self.ecoord_adj(ecoords_in[0], scale, FlipXoffset)
+        if Raster_step == 0:    # not vedtor cut/engrave
+            lastx, lasty, last_loop, last_depth = self.ecoord_adj(ecoords_in[0], scale, FlipXoffset)
+
+            # set the speed
+            if useDepthInfo:
+                speed = self.make_speed_depth(Feed, board_name=board_name, Raster_step=0, depth=last_depth)
+            else:
+                speed = self.make_speed_depth(Feed, board_name=board_name)
+            for s in speed:
+                self.write(s)
+
             self.make_dir_dist(lastx-startX,lasty-startY)
             self.flush(laser_on=False)
             self.write(ord("N"))
@@ -369,15 +406,15 @@ class egv(object):
             ###########################################################
             laser = False
 
-            for i in range(1,len(ecoords_in)):
-                e0,e1,e2                = self.ecoord_adj(ecoords_in[i]  ,scale,FlipXoffset)
+            for i in range(1, len(ecoords_in)):
+                e0, e1, e2, depth = self.ecoord_adj(ecoords_in[i], scale,FlipXoffset)
                 update_gui("Generating EGV Data: %.1f%%" %(100.0*float(i)/float(len(ecoords_in))))
                 if stop_calc[0]:
                     raise StandardError("Action Stopped by User.")
 
-                if ( e2  == last_loop)     and (not laser):
+                if ( e2 == last_loop) and (not laser):
                     laser = True
-                elif ( e2  != last_loop)    and (laser):
+                elif ( e2 != last_loop) and (laser):
                     laser = False
                 dx = e0 - lastx
                 dy = e1 - lasty
@@ -385,12 +422,23 @@ class egv(object):
                 min_rapid = 5
                 if (abs(dx) + abs(dy)) > 0:
                     if laser:
-                        self.make_cut_line(dx,dy)
+                        # change speed according to depth (if there was a depth change)
+                        if useDepthInfo:
+                            if (depth != last_depth):
+                                self.flush()
+                                newspeed = self.make_speed_depth(Feed, board_name=board_name, Raster_step=0, depth=depth)
+                                for s in newspeed:
+                                    self.write(s)
+                                last_depth = depth
+
+                        self.make_cut_line(dx, dy)
+                        self.flush()
                     else:
                         if ((abs(dx) < min_rapid) and (abs(dy) < min_rapid)):
-                            self.rapid_move_slow(dx,dy)
+                            self.rapid_move_slow(dx, dy)
                         else:
-                            self.rapid_move_fast(dx,dy)
+                            self.rapid_move_fast(dx, dy)
+                        self.flush()
 
                 lastx = e0
                 lasty = e1
@@ -406,9 +454,13 @@ class egv(object):
             else:
                 self.rapid_move_fast(dx,dy)
 
-              ###########################################################
         else: # Raster
-              ###########################################################
+            # set the speed
+            speed = self.make_speed_depth(Feed, board_name=board_name, Raster_step=Raster_step, depth=255)
+            for code in speed:
+                self.write(code)
+
+            ###################################################
             Rapid_flag=True
             ###################################################
             scanline = []
@@ -427,7 +479,7 @@ class egv(object):
                         scanline[-1].append(ecoords_in[i])
             ###################################################
 
-            lastx,lasty,last_loop = self.ecoord_adj(ecoords_in[0],scale,FlipXoffset)
+            lastx, lasty, last_loop, depth = self.ecoord_adj(ecoords_in[0],scale,FlipXoffset)
 
             DXstart = lastx-startX
             DYstart = lasty-startY
@@ -450,7 +502,7 @@ class egv(object):
                 scan = []
                 for point in scan_raw:
                     #print point
-                    e0,e1,e2 = self.ecoord_adj(point,scale,FlipXoffset)
+                    e0, e1, e2, depth = self.ecoord_adj(point,scale,FlipXoffset)
                     scan.append([e0,e1,e2])
                 if (cnt % 1000 == 0):
                     update_gui("Generating EGV Data: %.1f%%" %(100.0*float(cnt)/float(len(scanline))))
@@ -570,12 +622,13 @@ class egv(object):
         self.make_dir_dist(dx,dy)
 
     def rapid_move_fast(self,dx,dy):
+        """ TcLc {B/T} N {B/T/L/R}{millis} [{B/T/L/R}{millis}] SE """
         pad = 3
         if pad == -dx:
             pad = pad+3
         #self.flush(laser_on=False)
-        self.make_dir_dist(-pad, 0  ) #add "T" move
-        self.make_dir_dist(   0, pad) #add "L" move
+        self.make_dir_dist(-pad, 0  ) #add "Tc" move
+        self.make_dir_dist(   0, pad) #add "Lc" move
         self.flush(laser_on=False)
 
         if dx+pad < 0.0:

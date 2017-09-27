@@ -40,3 +40,8 @@ else:
 WHISPERER_VERSION = '0.10.tus.01'
 QUIET = False
 DEBUG = False
+
+# TODO: use those as limits for the UI
+MAX_FEED_VECTOR = 35.0
+MAX_FEED_RASTER = 200.0
+USE_DEPTH_INFO  = True

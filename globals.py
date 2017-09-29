@@ -44,4 +44,4 @@ DEBUG = False
 # TODO: use those as limits for the UI
 MAX_FEED_VECTOR = 35.0
 MAX_FEED_RASTER = 200.0
-USE_DEPTH_INFO  = True
+USE_DEPTH_INFO  = False

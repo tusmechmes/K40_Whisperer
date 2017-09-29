@@ -390,7 +390,7 @@ class egv(object):
             if useDepthInfo:
                 speed = self.make_speed_depth(Feed, board_name=board_name, Raster_step=0, depth=last_depth)
             else:
-                speed = self.make_speed_depth(Feed, board_name=board_name)
+                speed = self.make_speed(Feed, board_name=board_name)
             for s in speed:
                 self.write(s)
 

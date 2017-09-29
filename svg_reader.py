@@ -134,6 +134,8 @@ class SVG_READER(inkex.Effect):
 
     def colmod(self, r, g, b, path_id):
         if self.use_depth_info:
+            if (r == 0) and (g == 0) and (b == 0):
+                self.Cut_Type[path_id] = "raster"
             if (g == 0) and (b == 0):
                 # limit the range of gradients to 100
                 if r < 100:
@@ -155,18 +157,18 @@ class SVG_READER(inkex.Effect):
             #if (r,g,b) ==(255,0,0):
             if (r >= 255-delta) and (g <= delta) and (b <= delta):
                 self.Cut_Type[path_id] = "cut"
-                (r, g, b) = (255, 255, 255)
+                (r, g, b) = (255, 0, 0)
             #elif (r,g,b)==(0,0,255):
             elif (r <= delta) and (g <= delta) and (b >= 255-delta):
                 self.Cut_Type[path_id] = "engrave"
-                (r, g, b) = (255, 255, 255)
+                (r, g, b) = (0, 0, 255)
             else:
                 self.Cut_Type[path_id] = "raster"
 
         return '%02x%02x%02x' % (r, g, b)
 
     def process_shape(self, node, mat):
-        rgb = (0, 0, 0)
+        rgb = "000000"
 
         # set default id if it's not specified, this fixes a bug where all elements resulted with the latest cut_type found
         path_id = node.get('id', str(node.__hash__()))

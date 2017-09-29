@@ -1729,10 +1729,10 @@ class Application(Frame):
                 x1    = (XY[0]-xmin)*scale
                 y1    = (XY[1]-ymax)*scale
                 loop  = XY[2]
-                color = "blue"
+                color = "#{0:02x}{1:02x}{2:02x}".format(0, 0, XY[3])
                 # check and see if we need to move to a new discontinuous start point
                 if (loop == loop_old):
-                    self.Plot_Line(xold, yold, x1, y1, x_lft, y_top, XlineShift, YlineShift, self.PlotScale, color)
+                    self.Plot_Line(xold, yold, x1, y1, x_lft, y_top, XlineShift, YlineShift, self.PlotScale, color, 1)
                 loop_old = loop
                 xold=x1
                 yold=y1
@@ -1751,7 +1751,7 @@ class Application(Frame):
                 color = "#{0:02x}{1:02x}{2:02x}".format(XY[3], 0, 0)
                 # check and see if we need to move to a new discontinuous start point
                 if (loop == loop_old):
-                    self.Plot_Line(xold, yold, x1, y1, x_lft, y_top, XlineShift, YlineShift, self.PlotScale, color)
+                    self.Plot_Line(xold, yold, x1, y1, x_lft, y_top, XlineShift, YlineShift, self.PlotScale, color ,1)
                 loop_old = loop
                 xold=x1
                 yold=y1

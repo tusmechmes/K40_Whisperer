@@ -308,9 +308,10 @@ class SVG_READER(inkex.Effect):
             points = map(lambda x: x.split(","), points)
             d = "M "
             for point in points:
-                x = float(point[0])
-                y = float(point[1])
-                d = d + "%f,%f " %(x, y)
+                if point[0] != '' and point[1] != '':
+                    x = float(point[0])
+                    y = float(point[1])
+                    d = d + "%f,%f " %(x, y)
 
             #Close the loop if it is a ploygon
             if node.tag == inkex.addNS('polygon', 'svg'):

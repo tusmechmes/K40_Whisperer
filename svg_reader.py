@@ -126,11 +126,13 @@ class SVG_READER(inkex.Effect):
             node._parent.set(node.attrname, str(nval) + 'mm')
 
     def fix_svg_coords(self):
+        docroot = self.document.getroot()
+
         # x y width height
-        self.px_to_mm(self.document.getroot().xpath('@x', namespaces=inkex.NSS)[0])
-        self.px_to_mm(self.document.getroot().xpath('@y', namespaces=inkex.NSS)[0])
-        self.px_to_mm(self.document.getroot().xpath('@width', namespaces=inkex.NSS)[0])
-        self.px_to_mm(self.document.getroot().xpath('@height', namespaces=inkex.NSS)[0])
+        self.px_to_mm(docroot.xpath('@x', namespaces=inkex.NSS)[0])
+        self.px_to_mm(docroot.xpath('@y', namespaces=inkex.NSS)[0])
+        self.px_to_mm(docroot.xpath('@width', namespaces=inkex.NSS)[0])
+        self.px_to_mm(docroot.xpath('@height', namespaces=inkex.NSS)[0])
 
     def colmod(self, r, g, b, path_id):
         if self.use_depth_info:

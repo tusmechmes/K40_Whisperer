@@ -85,6 +85,7 @@ class Application(Frame):
         self.x = -1
         self.y = -1
         self.createWidgets()
+        self.HOME_DIR = "~"
 
     def createWidgets(self):
         self.initComplete = 0

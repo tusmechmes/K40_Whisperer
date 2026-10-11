@@ -344,7 +344,7 @@ if __name__ == "__main__":
     # V = SPEED SET
     # C = COFRASE? for "fast" speeds / non raster
 
-    k40.send_chars("ICV1952331000000000 NRBS1E D BR Mz139U TcLc TN L|k Bc SE F NSE")
+    #k40.send_chars("ICV1952331000000000 NRBS1E D BR Mz139U TcLc TN L|k Bc SE F NSE")
 
     # one line right 100
     #               I speed             header on R394  off L3 U3  R ? D3 L391  ?  END
@@ -352,14 +352,14 @@ if __name__ == "__main__":
 
     # 2 lines: right100 then down100
     #               I speed             header on R394  D394  off L3 U3 R ? U391  L391  ?  END
-    k40.send_chars("ICV1151911000000000 NRBS1E D  Bz139 Rz139 U   Tc Lc B N Lz136 Tz136 SE FNSE")
+    #k40.send_chars("ICV1151911000000000 NRBS1E D  Bz139 Rz139 U   Tc Lc B N Lz136 Tz136 SE FNSE")
 
     # 2 lines: right100 @ pow100, down100 @ pow255
     #
-    k40.send_chars("ICV1952331000000000 NRBS1E D CV1151911000000000 Bz139 Rz139 UTcLcB NLz136Tz136SE FNSE")
-    k40.send_chars("ICV1952331000000000 NRBS1E D Bz139 CV1151911000000000 Rz139 UTcLcB NLz136Tz136SE FNSE")
+    #k40.send_chars("ICV1952331000000000 NRBS1E D CV1151911000000000 Bz139 Rz139 UTcLcB NLz136Tz136SE FNSE")
+    #k40.send_chars("ICV1952331000000000 NRBS1E D Bz139 CV1151911000000000 Rz139 UTcLcB NLz136Tz136SE FNSE")
 
     # 4 lines: right100@100, down100@255, gap, left~98@100, gap, diag120@150
-    k40.send_chars("ICV1952331000000000 NRBS1E D Bz139 CV1151911000000000 Rz139 CV1952331000000000UTcLcB NRcTmSE DTz123 CV1872291000000000UTcLcT NLhBcSE DMoBaM|dBaM|dBaM|eBaM|dBaM|dBaM|eBaM|dBaM|dBaM|dBaM|eBaM|dBaM|dBaMoUTcLcB NRaTz136SE FNSE")
+    #k40.send_chars("ICV1952331000000000 NRBS1E D Bz139 CV1151911000000000 Rz139 CV1952331000000000UTcLcB NRcTmSE DTz123 CV1872291000000000UTcLcT NLhBcSE DMoBaM|dBaM|dBaM|eBaM|dBaM|dBaM|eBaM|dBaM|dBaM|dBaM|eBaM|dBaM|dBaMoUTcLcB NRaTz136SE FNSE")
 
     print ("DONE")
